@@ -13,8 +13,7 @@ endmodule
 
 module CSA #(
     parameter WIDTH = 16
-)
-(
+)(
     input wire [WIDTH-1:0] a, b, c,
     output wire [WIDTH-1:0] sum,
     output wire [WIDTH-1:0] cout
