@@ -1,12 +1,19 @@
 module MAC(
     input wire clock,
+    
     input wire [7:0] weight,      // 8-bit Input Weight
     input wire [7:0] activation,      // 8-bit Input Activation
+    
     input wire [31:0] prevsum, prevcarry,      // 16-bit Multiplier Output (A*W)
+    
     input wire resetA, resetW , resetS, resetC,      // Reset Signals for Activation, Weight, Sum-in and Carry-in Registers
     input wire enableA, enableW, enableS, enableC, // Enable Signals for Activation, Weight, Sum-in and Carry-in Registers
-    output wire [31:0] nextsum, nextcarry,   // 16-bit Output A*W + PreviousSum
-    output wire [7:0] weight_pass     // Output from Weight Register to feed into the next PE in the same row
+    
+    output wire [31:0] nextsum,     // 16-bit Output A*W + PreviousSum
+    output wire [31:0] nextcarry,   // 16-bit Output A*W + PreviousSum
+    
+    output wire [7:0] weight_pass,     // Output from Weight Register to feed into the next PE in the same row
+    output wire [7:0] activation_pass  // Output from Activation Register to feed into the next PE in the same column
 );
 
 
@@ -67,5 +74,5 @@ module MAC(
 
     assign nextcarry = {carryout_csa[30:0], 1'b0}; // Shift the carryout left by 1 to align with the next stage
     assign weight_pass = weight_out; // Pass the weight to the next PE in the same row
-
+    assign activation_pass = activation_out; // Pass the activation to the next PE in the same row
 endmodule
