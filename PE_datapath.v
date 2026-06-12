@@ -65,7 +65,7 @@ module MAC(
 
     //Instantiate the Carry Save Adder to compute A*W + PreviousSum
     CSA #(.WIDTH(32)) adder32b(
-        .a({16'b0,mult_out}),
+        .a({{16{mult_out[15]}},mult_out}),
         .b(sumin_out),
         .c(carryin_out),
         .sum(nextsum),
