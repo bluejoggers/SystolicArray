@@ -23,7 +23,7 @@ module MAC(
 
 
     // Instantiate Weight and Activation Registers
-    Register8b weightreg(
+    register weightreg(
         .clk(clock),
         .rst(resetW),
         .en(enableW),
@@ -31,7 +31,7 @@ module MAC(
         .data_out(weight_out)
     );
 
-    Register8b activationreg(
+    register activationreg(
         .clk(clock),
         .rst(resetA),
         .en(enableA),
@@ -40,7 +40,7 @@ module MAC(
     );
 
     //Instantiate the Sum-in and Carry-in Registers to hold the Previous Sum and Carry for the next MAC operation
-    Register8b #(.BITS(32)) suminreg(
+    register #(.BITS(32)) suminreg(
         .clk(clock),
         .rst(resetS),
         .en(enableS),
@@ -48,7 +48,7 @@ module MAC(
         .data_out(sumin_out)
     );
 
-    Register8b #(.BITS(32)) carryinreg(
+    register #(.BITS(32)) carryinreg(
         .clk(clock),
         .rst(resetC),
         .en(enableC),
