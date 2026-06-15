@@ -1,40 +1,38 @@
 /*
-    Normalizer.v instantiates the normalize module in BatchNormalizaton.v for each column of the Systolic Array.
+This module perfoms batch normalization on the data received from the activation block.
+
+The formula for batch normalization is: Y = (X - mean / sqrt(variance + epsilon))
+This can be thought of as a two step process: Scale and Shift using fixed point integers.
+Gain is signed Qm.n fixed point representation, where m is the number of bits for the integer part + sign bit and n is the number of bits for the fractional part. 
+For example, if we use a Q1.15 format, we can represent gain values in the range of -1 to 0.999969482421875 with a precision of 0.000030517578125.
+
+Say data_in = 200 (a 32-bit accumulator output) and gain = 16384 (which represents 0.5 in Q1.15).
+Step 1 — raw integer multiply (what the hardware does):
+mult = 200 × 16384 = 3,276,800
+
+Step 2 — arithmetic right shift by 15 (what >>> shift does):
+shifted = 3,276,800 >>> 15
+        = 3,276,800 / 32768
+        = 100
+
+True mathematical result:
+data_in × gain_real = 200 × 0.5 = 100
 */
 
-module normalizer #(
-    parameter INPUT_WIDTH = 8, // Number of PEs in the column (i.e. number of inputs to the normalization block)
+
+module normalize #(
     parameter BITS = 32 // Bit width of the input and output data (32 bits per PE to accommodate the accumulated sums from the accumulator column)
 )(
-    input wire clock,
-    input wire [0:INPUT_WIDTH*BITS-1] data_in, // Concatenated input data from the Activation block column (32 bits per PE)
-    input wire [15:0] gain , // Gain parameters for batch normalization (16 bits fixed-point representation for each PE)
-    input wire [BITS-1:0] bias, // Bias parameters for batch normalization (32 bits fixed-point representation for each PE)
-    input wire [4:0] shift, // Shift parameters for batch normalization (5 bits to allow for shifts up to 31 for each PE)
-    output wire [0:INPUT_WIDTH*BITS-1] data_out // Concatenated output data after normalization (32 bits per PE)
+    input wire [BITS-1:0] data_in, // Input data from the accumulator column (32 bits per PE)
+    input wire [15:0] gain, // Gain parameter for batch normalization (16 bits fixed-point representation)
+    input wire [BITS-1:0] bias, // Bias parameter for batch normalization (32 bits fixed-point representation)
+    input wire [4:0] shift, // Shift parameter for batch normalization (5 bits to allow for shifts up to 31)
+    output wire [BITS-1:0] data_out // Output data after normalization (32 bits per PE)
 );
 
-    reg [15:0] gain_reg; // Register to hold the gain value for each clock cycle
-    reg [BITS-1:0] bias_reg; // Register to hold the bias value for each clock cycle
-    reg [4:0] shift_reg; // Register to hold the shift value for each clock cycle
+    wire [BITS+16-1:0] multiplied_data; // Wire to hold the intermediate data multiplied by gain and shiftbefore applying bias
 
-    always @(posedge clock) begin
-        gain_reg <= gain; // Update the gain register on each clock cycle
-        bias_reg <= bias; // Update the bias register on each clock cycle
-        shift_reg <= shift; // Update the shift register on each clock cycle
-    end
-
-    genvar i;
-    generate 
-        for (i = 0; i < INPUT_WIDTH; i = i + 1) begin :normalization_units
-            normalize normalize_inst ( 
-                .data_in(data_in[i*BITS +: BITS]), // Slicing 32 bits of data from the bus for each column
-                .gain(gain_reg), // Using the registered gain value for normalization
-                .bias(bias_reg), // Using the registered bias value for normalization
-                .shift(shift_reg), // Using the registered shift value for normalization
-                .data_out(data_out[i*BITS +: BITS]) // Slicing 32 bits of output data for each column
-            );
-        end
-    endgenerate
+    assign multiplied_data = (data_in * gain) >>> shift; // Multiply the input data by the gain and apply the shift for scaling
+    assign data_out = multiplied_data[BITS-1:0] + bias; // Add the bias to the scaled data to get the final normalized output
 
 endmodule 
