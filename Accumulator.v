@@ -28,6 +28,25 @@ module accumulator #(
 
     integer row, column;
 
-    always @(posedge clock)
+    always @(posedge clock) begin
+        if (reset) begin
+            // Reset all registers to 0
+            for (row = 0; row < DEPTH; row = row + 1) begin
+                for (column = 0; column < INPUT_WIDTH; column = column + 1) begin
+                    accumulator_reg[row][column] <= 32'b0;
+                end
+            end
+        end else if (write_enable) begin
+            // Write the new accumulated values into the registers at the specified write addresses
+            for (column = 0; column < INPUT_WIDTH; column = column + 1) begin
+                accumulator_reg[write_address[column]][column] <= accumulator_data_in[column*32 +: 32];
+            end
+        end else if (read_enable) begin
+            // Read the accumulated values from the registers at the specified read addresses and concatenate them for output
+            for (column = 0; column < INPUT_WIDTH; column = column + 1) begin
+                accumulator_data_out[column*32 +: 32] <= accumulator_reg[read_address[column]][column];
+            end
+        end
+    end
 
 endmodule
