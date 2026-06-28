@@ -1,8 +1,8 @@
 module MAC(
     input wire clock,
     
-    input wire [7:0] weight,      // 8-bit Input Weight
-    input wire [7:0] activation,      // 8-bit Input Activation
+    input wire signed [7:0] weight,      // 8-bit Input Weight
+    input wire signed [7:0] activation,      // 8-bit Input Activation
     
     input wire [31:0] prevsum, prevcarry,      // 16-bit Multiplier Output (A*W)
     
@@ -12,13 +12,13 @@ module MAC(
     output wire [31:0] nextsum,     // 16-bit Output A*W + PreviousSum
     output wire [31:0] nextcarry,   // 16-bit Output A*W + PreviousSum
     
-    output wire [7:0] weight_pass,     // Output from Weight Register to feed into the next PE in the same row
-    output wire [7:0] activation_pass  // Output from Activation Register to feed into the next PE in the same column
+    output wire signed [7:0] weight_pass,     // Output from Weight Register to feed into the next PE in the same row
+    output wire signed [7:0] activation_pass  // Output from Activation Register to feed into the next PE in the same column
 );
 
 
-    wire [7:0] weight_out, activation_out;
-    wire [15:0] mult_out;
+    wire signed [7:0] weight_out, activation_out;
+    wire signed [15:0] mult_out;
     wire [31:0] sumin_out, carryin_out, carryout_csa;
 
 
@@ -56,12 +56,8 @@ module MAC(
         .data_out(carryin_out)
     );
 
-    // Instantiate the 8x8 Wallace Tree Multiplier to compute A*W
-    WallaceMultiplier8x8 multiplier(
-        .A(activation_out),
-        .B(weight_out),
-        .Product(mult_out)
-    );
+    //Signed multiplication of activation and weight to produce a 16 bit output
+    assign mult_out = activation_out * weight_out;
 
     //Instantiate the Carry Save Adder to compute A*W + PreviousSum
     CSA #(.WIDTH(32)) adder32b(
