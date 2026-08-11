@@ -21,4 +21,5 @@ module csa_test(a, b, c, sum, cout);
     assign sum = {1'b0, int_sum} + {int_carry, 1'b0};
 endmodule 
 
-module testbench
+module testbench;
+endmodule 

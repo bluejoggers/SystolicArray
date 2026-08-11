@@ -5,7 +5,7 @@ module quantize #(
     input wire signed [BITS-1:0] q_data_in,
     input wire signed [15:0] inv_scale,
     input wire signed [7:0] zero_point,
-    output wire signed [BITS-1:0] q_data_out
+    output wire signed [7:0] q_data_out
 );
     reg [7:0] q_reg;
 
