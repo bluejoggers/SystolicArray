@@ -1,0 +1,59 @@
+# SystemC::Coverage-3
+C 'f/opt/homebrew/Cellar/verilator/5.050/share/verilator/include/verilated_std.svl105n36tlinepagev_line/semaphoreoblockS105hstd::semaphore__Vclpkg' 0
+C 'f/opt/homebrew/Cellar/verilator/5.050/share/verilator/include/verilated_std.svl106n43tlinepagev_line/semaphoreoblockS106hstd::semaphore__Vclpkg' 0
+C 'f/opt/homebrew/Cellar/verilator/5.050/share/verilator/include/verilated_std.svl107n47tlinepagev_line/semaphoreoblockS107hstd::semaphore__Vclpkg' 0
+C 'f/opt/homebrew/Cellar/verilator/5.050/share/verilator/include/verilated_std.svl109n14tlinepagev_line/semaphoreoblockS109-110hstd::semaphore__Vclpkg' 0
+C 'f/opt/homebrew/Cellar/verilator/5.050/share/verilator/include/verilated_std.svl113n19tlinepagev_line/semaphoreoblockS113-114hstd::semaphore__Vclpkg' 0
+C 'f/opt/homebrew/Cellar/verilator/5.050/share/verilator/include/verilated_std.svl117n10tlinepagev_line/semaphoreoblockS117,119,126-131hstd::semaphore__Vclpkg' 0
+C 'f/opt/homebrew/Cellar/verilator/5.050/share/verilator/include/verilated_std.svl122n34texprpagev_expr/semaphoreo((m_keyCount >= keyCount)==0) => 0hstd::semaphore__Vclpkg' 0
+C 'f/opt/homebrew/Cellar/verilator/5.050/share/verilator/include/verilated_std.svl122n34texprpagev_expr/semaphoreo((m_keyCount >= keyCount)==1 && (m_nextKeyCount > m_keyCount)==1) => 1hstd::semaphore__Vclpkg' 0
+C 'f/opt/homebrew/Cellar/verilator/5.050/share/verilator/include/verilated_std.svl122n34texprpagev_expr/semaphoreo((m_nextKeyCount > m_keyCount)==0) => 0hstd::semaphore__Vclpkg' 0
+C 'f/opt/homebrew/Cellar/verilator/5.050/share/verilator/include/verilated_std.svl122n7tbranchpagev_branch/semaphoreoifS122-124hstd::semaphore__Vclpkg' 0
+C 'f/opt/homebrew/Cellar/verilator/5.050/share/verilator/include/verilated_std.svl122n8tbranchpagev_branch/semaphoreoelsehstd::semaphore__Vclpkg' 0
+C 'f/opt/homebrew/Cellar/verilator/5.050/share/verilator/include/verilated_std.svl135n18tlinepagev_line/semaphoreoblockS135,137-138hstd::semaphore__Vclpkg' 0
+C 'f/opt/homebrew/Cellar/verilator/5.050/share/verilator/include/verilated_std.svl136n7tbranchpagev_branch/semaphoreoifS136hstd::semaphore__Vclpkg' 0
+C 'f/opt/homebrew/Cellar/verilator/5.050/share/verilator/include/verilated_std.svl136n8tbranchpagev_branch/semaphoreoelsehstd::semaphore__Vclpkg' 0
+C 'f/opt/homebrew/Cellar/verilator/5.050/share/verilator/include/verilated_std.svl143n3tlinepagev_line/processoblockS143hstd::process__Vclpkg' 0
+C 'f/opt/homebrew/Cellar/verilator/5.050/share/verilator/include/verilated_std.svl156n29tlinepagev_line/processoblockS156-157,159,161hstd::process__Vclpkg' 0
+C 'f/opt/homebrew/Cellar/verilator/5.050/share/verilator/include/verilated_std.svl164n29tlinepagev_line/processoblockS164,166hstd::process__Vclpkg' 0
+C 'f/opt/homebrew/Cellar/verilator/5.050/share/verilator/include/verilated_std.svl170n20tlinepagev_line/processoblockS170,172hstd::process__Vclpkg' 0
+C 'f/opt/homebrew/Cellar/verilator/5.050/share/verilator/include/verilated_std.svl178n19tlinepagev_line/processoblockS178-179hstd::process__Vclpkg' 0
+C 'f/opt/homebrew/Cellar/verilator/5.050/share/verilator/include/verilated_std.svl186n19tlinepagev_line/processoblockS186-187hstd::process__Vclpkg' 0
+C 'f/opt/homebrew/Cellar/verilator/5.050/share/verilator/include/verilated_std.svl190n10tlinepagev_line/processoblockS190,192hstd::process__Vclpkg' 0
+C 'f/opt/homebrew/Cellar/verilator/5.050/share/verilator/include/verilated_std.svl192n34texprpagev_expr/processo((status() == process::FINISHED)==0 && (status() == process::KILLED)==0) => 0hstd::process__Vclpkg' 0
+C 'f/opt/homebrew/Cellar/verilator/5.050/share/verilator/include/verilated_std.svl192n34texprpagev_expr/processo((status() == process::FINISHED)==1) => 1hstd::process__Vclpkg' 0
+C 'f/opt/homebrew/Cellar/verilator/5.050/share/verilator/include/verilated_std.svl192n34texprpagev_expr/processo((status() == process::KILLED)==1) => 1hstd::process__Vclpkg' 0
+C 'f/opt/homebrew/Cellar/verilator/5.050/share/verilator/include/verilated_std.svl196n17tlinepagev_line/processoblockS196,198hstd::process__Vclpkg' 0
+C 'f/opt/homebrew/Cellar/verilator/5.050/share/verilator/include/verilated_std.svl198n7tlinepagev_line/processoblockS198-199hstd::process__Vclpkg' 0
+C 'f/opt/homebrew/Cellar/verilator/5.050/share/verilator/include/verilated_std.svl232n21tlinepagev_line/processoblockS232,234,236-237hstd::process__Vclpkg' 0
+C 'f/opt/homebrew/Cellar/verilator/5.050/share/verilator/include/verilated_std.svl240n19tlinepagev_line/processoblockS240-241hstd::process__Vclpkg' 0
+C 'f/opt/homebrew/Cellar/verilator/5.050/share/verilator/include/verilated_std.svl246n16tlinepagev_line/stdoblockS246-247hstd' 0
+C 'fP10.svl15n5tlinepagev_line/cover_tboblockS15-16,18,26-27hcover_tb' 1
+C 'fP10.svl18n9tlinepagev_line/cover_tboblockS18-21,23hcover_tb' 20
+C 'fP10.svl2n15ttogglepagev_toggle/cover_tbomode[0]:0->1hcover_tb' 5
+C 'fP10.svl2n15ttogglepagev_toggle/cover_tbomode[0]:1->0hcover_tb' 4
+C 'fP10.svl2n15ttogglepagev_toggle/cover_tbomode[1]:0->1hcover_tb' 6
+C 'fP10.svl2n15ttogglepagev_toggle/cover_tbomode[1]:1->0hcover_tb' 5
+C 'fP10.svl3n15ttogglepagev_toggle/cover_tbocfg[0]:0->1hcover_tb' 5
+C 'fP10.svl3n15ttogglepagev_toggle/cover_tbocfg[0]:1->0hcover_tb' 5
+C 'fP10.svl3n15ttogglepagev_toggle/cover_tbocfg[1]:0->1hcover_tb' 6
+C 'fP10.svl3n15ttogglepagev_toggle/cover_tbocfg[1]:1->0hcover_tb' 6
+C 'fP10.svl3n15ttogglepagev_toggle/cover_tbocfg[2]:0->1hcover_tb' 4
+C 'fP10.svl3n15ttogglepagev_toggle/cover_tbocfg[2]:1->0hcover_tb' 3
+C 'fP10.svl5n9ttogglepagev_toggle/cover_tboclk:0->1hcover_tb' 45
+C 'fP10.svl5n9ttogglepagev_toggle/cover_tboclk:1->0hcover_tb' 45
+C 'fP10.svl6n22texprpagev_expr/cover_tbo(clk==0) => 1hcover_tb' 45
+C 'fP10.svl6n22texprpagev_expr/cover_tbo(clk==1) => 0hcover_tb' 45
+C 'fP10.svl6n5tlinepagev_line/cover_tboblockS6hcover_tb' 90
+C 'tcovergrouppagev_covergroup/cgfP10.svl10n9binauto_0hcg.cfg.auto_0' 5
+C 'tcovergrouppagev_covergroup/cgfP10.svl10n9binauto_1hcg.cfg.auto_1' 3
+C 'tcovergrouppagev_covergroup/cgfP10.svl10n9binauto_2hcg.cfg.auto_2' 3
+C 'tcovergrouppagev_covergroup/cgfP10.svl10n9binauto_3hcg.cfg.auto_3' 2
+C 'tcovergrouppagev_covergroup/cgfP10.svl10n9binauto_4hcg.cfg.auto_4' 27
+C 'tcovergrouppagev_covergroup/cgfP10.svl10n9binauto_5hcg.cfg.auto_5' 3
+C 'tcovergrouppagev_covergroup/cgfP10.svl10n9binauto_6hcg.cfg.auto_6' 0
+C 'tcovergrouppagev_covergroup/cgfP10.svl10n9binauto_7hcg.cfg.auto_7' 2
+C 'tcovergrouppagev_covergroup/cgfP10.svl9n9binauto_0hcg.mode.auto_0' 7
+C 'tcovergrouppagev_covergroup/cgfP10.svl9n9binauto_1hcg.mode.auto_1' 5
+C 'tcovergrouppagev_covergroup/cgfP10.svl9n9binauto_2hcg.mode.auto_2' 3
+C 'tcovergrouppagev_covergroup/cgfP10.svl9n9binauto_3hcg.mode.auto_3' 30

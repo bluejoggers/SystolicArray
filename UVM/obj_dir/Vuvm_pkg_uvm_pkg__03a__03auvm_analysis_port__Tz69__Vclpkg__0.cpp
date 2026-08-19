@@ -1,0 +1,79 @@
+// Verilated -*- C++ -*-
+// DESCRIPTION: Verilator output: Design implementation internals
+// See Vuvm_pkg.h for the primary calling header
+
+#include "Vuvm_pkg__pch.h"
+
+void Vuvm_pkg_uvm_pkg__03a__03auvm_analysis_port__Tz69::init(VlProcessRef vlProcess, Vuvm_pkg__Syms* __restrict vlSymsp, std::string name, VlClassRef<Vuvm_pkg_uvm_pkg__03a__03auvm_component> parent) {
+    Vuvm_pkg_uvm_pkg__03a__03auvm_port_base__Tz97::init(vlProcess, vlSymsp, name, parent, 0U, 0U, 0xffffffffU);
+    VL_DEBUG_IF(VL_DBG_MSGF("+                        Vuvm_pkg_uvm_pkg__03a__03auvm_analysis_port__Tz69::new\n"); );
+    // Body
+    VlProcess::currentp(vlProcess.get());
+    _ctor_var_reset(vlSymsp);
+    /*super.new*/;
+    Vuvm_pkg_uvm_pkg__03a__03auvm_port_base__Tz97::__PVT__m_if_mask = 0x00000100U;
+}
+
+void Vuvm_pkg_uvm_pkg__03a__03auvm_analysis_port__Tz69::__VnoInFunc_get_type_name(Vuvm_pkg__Syms* __restrict vlSymsp, std::string &get_type_name__Vfuncrtn) {
+    VL_DEBUG_IF(VL_DBG_MSGF("+                        Vuvm_pkg_uvm_pkg__03a__03auvm_analysis_port__Tz69::__VnoInFunc_get_type_name\n"); );
+    // Body
+    get_type_name__Vfuncrtn = "uvm_analysis_port"s;
+}
+
+void Vuvm_pkg_uvm_pkg__03a__03auvm_analysis_port__Tz69::__VnoInFunc_write(VlProcessRef vlProcess, Vuvm_pkg__Syms* __restrict vlSymsp, VlClassRef<Vuvm_pkg_uvm_pkg__03a__03auvm_reg_item> t) {
+    VL_DEBUG_IF(VL_DBG_MSGF("+                        Vuvm_pkg_uvm_pkg__03a__03auvm_analysis_port__Tz69::__VnoInFunc_write\n"); );
+    // Locals
+    VlClassRef<Vuvm_pkg_uvm_pkg__03a__03auvm_port_base__Tz97> __Vfunc_get_if__2__Vfuncout;
+    IData/*31:0*/ __Vtask_uvm_report_fatal__4__verbosity;
+    __Vtask_uvm_report_fatal__4__verbosity = 0;
+    IData/*31:0*/ __Vtask_uvm_report_fatal__4__line;
+    __Vtask_uvm_report_fatal__4__line = 0;
+    CData/*0:0*/ __Vtask_uvm_report_fatal__4__report_enabled_checked;
+    __Vtask_uvm_report_fatal__4__report_enabled_checked = 0;
+    VlClassRef<Vuvm_pkg_uvm_pkg__03a__03auvm_coreservice_t> __Vfunc_get__5__Vfuncout;
+    VlClassRef<Vuvm_pkg_uvm_pkg__03a__03auvm_root> __Vtask_get_root__6__Vfuncout;
+    // Body
+    VlProcess::currentp(vlProcess.get());
+    std::string __VlefCall_1__get_full_name;
+    IData/*31:0*/ __VlefCall_0__size;
+    IData/*31:0*/ unnamedblk1__DOT__i;
+    VlClassRef<Vuvm_pkg_uvm_pkg__03a__03auvm_tlm_if_base__Tz69_TBz69> tif;
+    unnamedblk1__DOT__i = 0U;
+    while (true) {
+        this->__VnoInFunc_size(vlSymsp, __VlefCall_0__size);
+        if (!(VL_LTS_III(32, unnamedblk1__DOT__i, __VlefCall_0__size))) break;
+        this->__VnoInFunc_get_if(vlProcess, vlSymsp, unnamedblk1__DOT__i, __Vfunc_get_if__2__Vfuncout);
+        tif = __Vfunc_get_if__2__Vfuncout;
+        if ((VlNull{} == tif)) {
+            this->__VnoInFunc_get_full_name(vlProcess, vlSymsp, __VlefCall_1__get_full_name);
+            __Vtask_uvm_report_fatal__4__report_enabled_checked = 0U;
+            this->__Vtask_uvm_report_fatal__4__context_name = ""s;
+            __Vtask_uvm_report_fatal__4__line = 0U;
+            this->__Vtask_uvm_report_fatal__4__filename = ""s;
+            __Vtask_uvm_report_fatal__4__verbosity = 0U;
+            this->__Vtask_uvm_report_fatal__4__message 
+                = VL_CVT_PACK_STR_NN(VL_CONCATN_NNN(
+                                                    VL_CONCATN_NNN("No uvm_tlm interface is connected to "s, __VlefCall_1__get_full_name), " for executing write()"s));
+            this->__Vtask_uvm_report_fatal__4__id = "NTCONN"s;
+            vlSymsp->TOP__uvm_pkg__03a__03auvm_coreservice_t__Vclpkg.__VnoInFunc_get(vlSymsp, __Vfunc_get__5__Vfuncout);
+            vlSymsp->TOP__uvm_pkg.__PVT__uvm_report_fatal__Vstatic__cs 
+                = __Vfunc_get__5__Vfuncout;
+            VL_NULL_CHECK(vlSymsp->TOP__uvm_pkg.__PVT__uvm_report_fatal__Vstatic__cs, "../../uvm/distrib/src/base/uvm_globals.svh", 246)->__VnoInFunc_get_root(vlProcess, vlSymsp, __Vtask_get_root__6__Vfuncout);
+            vlSymsp->TOP__uvm_pkg.__PVT__uvm_report_fatal__Vstatic__top 
+                = __Vtask_get_root__6__Vfuncout;
+            VL_NULL_CHECK(vlSymsp->TOP__uvm_pkg.__PVT__uvm_report_fatal__Vstatic__top, "../../uvm/distrib/src/base/uvm_globals.svh", 247)->__VnoInFunc_uvm_report_fatal(vlProcess, vlSymsp, this->__Vtask_uvm_report_fatal__4__id, this->__Vtask_uvm_report_fatal__4__message, __Vtask_uvm_report_fatal__4__verbosity, this->__Vtask_uvm_report_fatal__4__filename, __Vtask_uvm_report_fatal__4__line, this->__Vtask_uvm_report_fatal__4__context_name, (IData)(__Vtask_uvm_report_fatal__4__report_enabled_checked));
+        }
+        VL_NULL_CHECK(tif, "../../uvm/distrib/src/tlm1/uvm_analysis_port.svh", 76)->__VnoInFunc_write(vlProcess, vlSymsp, t);
+        unnamedblk1__DOT__i = ((IData)(1U) + unnamedblk1__DOT__i);
+    }
+}
+
+void Vuvm_pkg_uvm_pkg__03a__03auvm_analysis_port__Tz69::_ctor_var_reset(Vuvm_pkg__Syms* __restrict vlSymsp) {
+    VL_DEBUG_IF(VL_DBG_MSGF("+                        Vuvm_pkg_uvm_pkg__03a__03auvm_analysis_port__Tz69::_ctor_var_reset\n"); );
+    // Body
+    (void)vlSymsp;  // Prevent unused variable warning
+}
+
+Vuvm_pkg_uvm_pkg__03a__03auvm_analysis_port__Tz69::~Vuvm_pkg_uvm_pkg__03a__03auvm_analysis_port__Tz69() {
+    VL_DEBUG_IF(VL_DBG_MSGF("+                        Vuvm_pkg_uvm_pkg__03a__03auvm_analysis_port__Tz69::~\n"); );
+}

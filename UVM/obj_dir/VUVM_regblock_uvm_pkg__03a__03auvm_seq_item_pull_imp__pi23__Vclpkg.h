@@ -1,0 +1,71 @@
+// Verilated -*- C++ -*-
+// DESCRIPTION: Verilator output: Design internal header
+// See VUVM_regblock.h for the primary calling header
+
+#ifndef VERILATED_VUVM_REGBLOCK_UVM_PKG__03A__03AUVM_SEQ_ITEM_PULL_IMP__PI23__VCLPKG_H_
+#define VERILATED_VUVM_REGBLOCK_UVM_PKG__03A__03AUVM_SEQ_ITEM_PULL_IMP__PI23__VCLPKG_H_  // guard
+
+#include "verilated.h"
+#include "verilated_covergroup.h"
+#include "verilated_timing.h"
+#include "verilated_random.h"
+class VUVM_regblock___024unit__03a__03areg_txn_base;
+class VUVM_regblock_uvm_pkg__03a__03auvm_port_base__Tz82;
+class VUVM_regblock_uvm_pkg__03a__03auvm_sequencer__Tz59_TBz59;
+
+
+class VUVM_regblock__Syms;
+
+class alignas(VL_CACHE_LINE_BYTES) VUVM_regblock_uvm_pkg__03a__03auvm_seq_item_pull_imp__pi23__Vclpkg final {
+  public:
+
+    // INTERNAL VARIABLES
+    VUVM_regblock__Syms* vlSymsp;
+    const char* vlNamep;
+
+    // CONSTRUCTORS
+    VUVM_regblock_uvm_pkg__03a__03auvm_seq_item_pull_imp__pi23__Vclpkg();
+    ~VUVM_regblock_uvm_pkg__03a__03auvm_seq_item_pull_imp__pi23__Vclpkg();
+    void ctor(VUVM_regblock__Syms* symsp, const char* namep);
+    void dtor();
+    VL_UNCOPYABLE(VUVM_regblock_uvm_pkg__03a__03auvm_seq_item_pull_imp__pi23__Vclpkg);
+
+    // INTERNAL METHODS
+    void __Vconfigure(bool first);
+};
+
+#include "VUVM_regblock_uvm_pkg__03a__03auvm_port_base__Tz82__Vclpkg.h"
+
+class VUVM_regblock__Syms;
+
+class VUVM_regblock_uvm_pkg__03a__03auvm_seq_item_pull_imp__pi23 : public VUVM_regblock_uvm_pkg__03a__03auvm_port_base__Tz82 {
+  public:
+
+    // DESIGN SPECIFIC STATE
+    VlClassRef<VUVM_regblock_uvm_pkg__03a__03auvm_sequencer__Tz59_TBz59> __PVT__m_imp;
+
+    // INTERNAL METHODS
+    virtual const char* typeName() const { return "uvm_pkg::uvm_seq_item_pull_imp__pi23"; }
+    VlClass* clone() const { return new VUVM_regblock_uvm_pkg__03a__03auvm_seq_item_pull_imp__pi23(*this); }
+    void __VnoInFunc_disable_auto_item_recording(VUVM_regblock__Syms* __restrict vlSymsp);
+    VlCoroutine __VnoInFunc_get(VUVM_regblock__Syms* __restrict vlSymsp, VlClassRef<VUVM_regblock___024unit__03a__03areg_txn_base> &t);
+    VlCoroutine __VnoInFunc_get_next_item(VlProcessRef vlProcess, VUVM_regblock__Syms* __restrict vlSymsp, VlClassRef<VUVM_regblock___024unit__03a__03areg_txn_base> &t);
+    virtual void __VnoInFunc_get_type_name(VUVM_regblock__Syms* __restrict vlSymsp, std::string &get_type_name__Vfuncrtn);
+    void __VnoInFunc_has_do_available(VUVM_regblock__Syms* __restrict vlSymsp, CData/*0:0*/ &has_do_available__Vfuncrtn);
+    void __VnoInFunc_is_auto_item_recording_enabled(VUVM_regblock__Syms* __restrict vlSymsp, CData/*0:0*/ &is_auto_item_recording_enabled__Vfuncrtn);
+    void __VnoInFunc_item_done(VlProcessRef vlProcess, VUVM_regblock__Syms* __restrict vlSymsp, VlClassRef<VUVM_regblock___024unit__03a__03areg_txn_base> t);
+    VlCoroutine __VnoInFunc_peek(VUVM_regblock__Syms* __restrict vlSymsp, VlClassRef<VUVM_regblock___024unit__03a__03areg_txn_base> &t);
+    void __VnoInFunc_put(VUVM_regblock__Syms* __restrict vlSymsp, VlClassRef<VUVM_regblock___024unit__03a__03areg_txn_base> t);
+    void __VnoInFunc_put_response(VlProcessRef vlProcess, VUVM_regblock__Syms* __restrict vlSymsp, VlClassRef<VUVM_regblock___024unit__03a__03areg_txn_base> t);
+    VlCoroutine __VnoInFunc_try_next_item(VUVM_regblock__Syms* __restrict vlSymsp, VlClassRef<VUVM_regblock___024unit__03a__03areg_txn_base> &t);
+    VlCoroutine __VnoInFunc_wait_for_sequences(VUVM_regblock__Syms* __restrict vlSymsp);
+  private:
+    void _ctor_var_reset(VUVM_regblock__Syms* __restrict vlSymsp);
+  public:
+    VUVM_regblock_uvm_pkg__03a__03auvm_seq_item_pull_imp__pi23() = default;
+    void init(VlProcessRef vlProcess, VUVM_regblock__Syms* __restrict vlSymsp, std::string name, VlClassRef<VUVM_regblock_uvm_pkg__03a__03auvm_sequencer__Tz59_TBz59> imp);
+    virtual ~VUVM_regblock_uvm_pkg__03a__03auvm_seq_item_pull_imp__pi23();
+};
+
+
+#endif  // guard

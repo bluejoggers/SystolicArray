@@ -25,7 +25,7 @@ module switch #(
             addr_b <= 0;
         end else begin
             if (valid) begin
-            if (addr > 0 && addr < ADDR_DIV) begin
+            if (addr >= 0 && addr <= ADDR_DIV) begin
                 data_a <= data;
                 addr_a <= addr;
                 data_b <= 0;

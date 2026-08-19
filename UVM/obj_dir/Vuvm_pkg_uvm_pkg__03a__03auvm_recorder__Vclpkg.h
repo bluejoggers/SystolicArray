@@ -1,0 +1,134 @@
+// Verilated -*- C++ -*-
+// DESCRIPTION: Verilator output: Design internal header
+// See Vuvm_pkg.h for the primary calling header
+
+#ifndef VERILATED_VUVM_PKG_UVM_PKG__03A__03AUVM_RECORDER__VCLPKG_H_
+#define VERILATED_VUVM_PKG_UVM_PKG__03A__03AUVM_RECORDER__VCLPKG_H_  // guard
+
+#include "verilated.h"
+#include "verilated_timing.h"
+#include "verilated_random.h"
+class Vuvm_pkg_std__03a__03aprocess;
+class Vuvm_pkg_uvm_pkg__03a__03auvm_coreservice_t;
+class Vuvm_pkg_uvm_pkg__03a__03auvm_object;
+class Vuvm_pkg_uvm_pkg__03a__03auvm_recorder;
+class Vuvm_pkg_uvm_pkg__03a__03auvm_root;
+class Vuvm_pkg_uvm_pkg__03a__03auvm_set_before_get_dap__Tz56;
+class Vuvm_pkg_uvm_pkg__03a__03auvm_tr_stream;
+
+
+class Vuvm_pkg__Syms;
+
+class alignas(VL_CACHE_LINE_BYTES) Vuvm_pkg_uvm_pkg__03a__03auvm_recorder__Vclpkg final {
+  public:
+
+    // DESIGN SPECIFIC STATE
+    IData/*31:0*/ __PVT__m_id;
+    VlAssocArray<VlClassRef<Vuvm_pkg_uvm_pkg__03a__03auvm_recorder>, IData/*31:0*/> __PVT__m_ids_by_recorder;
+    VlAssocArray<IData/*31:0*/, VlClassRef<Vuvm_pkg_uvm_pkg__03a__03auvm_recorder>> __PVT__m_recorders_by_id;
+
+    // INTERNAL VARIABLES
+    Vuvm_pkg__Syms* vlSymsp;
+    const char* vlNamep;
+
+    // CONSTRUCTORS
+    Vuvm_pkg_uvm_pkg__03a__03auvm_recorder__Vclpkg();
+    ~Vuvm_pkg_uvm_pkg__03a__03auvm_recorder__Vclpkg();
+    void ctor(Vuvm_pkg__Syms* symsp, const char* namep);
+    void dtor();
+    VL_UNCOPYABLE(Vuvm_pkg_uvm_pkg__03a__03auvm_recorder__Vclpkg);
+
+    // INTERNAL METHODS
+    void __Vconfigure(bool first);
+    void __VnoInFunc_get_recorder_from_handle(Vuvm_pkg__Syms* __restrict vlSymsp, IData/*31:0*/ id, VlClassRef<Vuvm_pkg_uvm_pkg__03a__03auvm_recorder> &get_recorder_from_handle__Vfuncrtn);
+    void __VnoInFunc_m_free_id(Vuvm_pkg__Syms* __restrict vlSymsp, IData/*31:0*/ id);
+};
+
+#include "Vuvm_pkg_uvm_pkg__03a__03auvm_object__Vclpkg.h"
+
+class Vuvm_pkg__Syms;
+
+class Vuvm_pkg_uvm_pkg__03a__03auvm_recorder : public Vuvm_pkg_uvm_pkg__03a__03auvm_object {
+  public:
+
+    // DESIGN SPECIFIC STATE
+    CData/*0:0*/ __PVT__m_warn_null_stream;
+    CData/*0:0*/ __PVT__m_is_opened;
+    CData/*0:0*/ __PVT__m_is_closed;
+    CData/*0:0*/ __PVT__physical;
+    CData/*0:0*/ __PVT__abstract;
+    CData/*0:0*/ __PVT__identifier;
+    IData/*31:0*/ __PVT__recording_depth;
+    IData/*31:0*/ __PVT__default_radix;
+    IData/*31:0*/ __PVT__policy;
+    QData/*63:0*/ __PVT__m_open_time;
+    QData/*63:0*/ __PVT__m_close_time;
+    std::string __Vfunc_uvm_report_enabled__3__id;
+    std::string __Vtask_uvm_report_warning__8__id;
+    std::string __Vtask_uvm_report_warning__8__message;
+    std::string __Vtask_uvm_report_warning__8__filename;
+    std::string __Vtask_uvm_report_warning__8__context_name;
+    std::string __Vfunc_uvm_report_enabled__26__id;
+    std::string __Vtask_uvm_report_error__31__id;
+    std::string __Vtask_uvm_report_error__31__message;
+    std::string __Vtask_uvm_report_error__31__filename;
+    std::string __Vtask_uvm_report_error__31__context_name;
+    std::string __Vfunc_uvm_report_enabled__36__id;
+    std::string __Vtask_uvm_report_error__41__id;
+    std::string __Vtask_uvm_report_error__41__message;
+    std::string __Vtask_uvm_report_error__41__filename;
+    std::string __Vtask_uvm_report_error__41__context_name;
+    VlClassRef<Vuvm_pkg_uvm_pkg__03a__03auvm_set_before_get_dap__Tz56> __PVT__m_stream_dap;
+
+    // INTERNAL METHODS
+    virtual const char* typeName() const { return "uvm_pkg::uvm_recorder"; }
+    virtual void __VnoInFunc___VBasicRand(Vuvm_pkg__Syms* __restrict vlSymsp, IData/*31:0*/ &__VBasicRand__Vfuncrtn);
+    virtual void __VnoInFunc___Vsetup_constraints(Vuvm_pkg__Syms* __restrict vlSymsp);
+    virtual void __VnoInFunc_begin_tr(Vuvm_pkg__Syms* __restrict vlSymsp, std::string txtype, IData/*31:0*/ stream, std::string nm, std::string label, std::string desc, QData/*63:0*/ begin_time, IData/*31:0*/ &begin_tr__Vfuncrtn);
+    virtual void __VnoInFunc_check_handle_kind(Vuvm_pkg__Syms* __restrict vlSymsp, std::string htype, IData/*31:0*/ handle, IData/*31:0*/ &check_handle_kind__Vfuncrtn);
+    void __VnoInFunc_close(Vuvm_pkg__Syms* __restrict vlSymsp, QData/*63:0*/ close_time);
+    virtual void __VnoInFunc_create_stream(Vuvm_pkg__Syms* __restrict vlSymsp, std::string name, std::string t, std::string scope, IData/*31:0*/ &create_stream__Vfuncrtn);
+    virtual void __VnoInFunc_do_close(Vuvm_pkg__Syms* __restrict vlSymsp, QData/*63:0*/ close_time);
+    virtual void __VnoInFunc_do_free(Vuvm_pkg__Syms* __restrict vlSymsp);
+    virtual void __VnoInFunc_do_open(VlProcessRef vlProcess, Vuvm_pkg__Syms* __restrict vlSymsp, VlClassRef<Vuvm_pkg_uvm_pkg__03a__03auvm_tr_stream> stream, QData/*63:0*/ open_time, std::string type_name);
+    virtual void __VnoInFunc_do_record_field(Vuvm_pkg__Syms* __restrict vlSymsp, std::string name, VlWide<128>/*4095:0*/ value, IData/*31:0*/ size, IData/*31:0*/ radix);
+    virtual void __VnoInFunc_do_record_field_int(Vuvm_pkg__Syms* __restrict vlSymsp, std::string name, QData/*63:0*/ value, IData/*31:0*/ size, IData/*31:0*/ radix);
+    virtual void __VnoInFunc_do_record_field_real(Vuvm_pkg__Syms* __restrict vlSymsp, std::string name, double value);
+    virtual void __VnoInFunc_do_record_generic(Vuvm_pkg__Syms* __restrict vlSymsp, std::string name, std::string value, std::string type_name);
+    virtual void __VnoInFunc_do_record_object(VlProcessRef vlProcess, Vuvm_pkg__Syms* __restrict vlSymsp, std::string name, VlClassRef<Vuvm_pkg_uvm_pkg__03a__03auvm_object> value);
+    virtual void __VnoInFunc_do_record_string(Vuvm_pkg__Syms* __restrict vlSymsp, std::string name, std::string value);
+    virtual void __VnoInFunc_do_record_time(Vuvm_pkg__Syms* __restrict vlSymsp, std::string name, QData/*63:0*/ value);
+    virtual void __VnoInFunc_end_tr(Vuvm_pkg__Syms* __restrict vlSymsp, IData/*31:0*/ handle, QData/*63:0*/ end_time);
+    void __VnoInFunc_free(VlProcessRef vlProcess, Vuvm_pkg__Syms* __restrict vlSymsp, QData/*63:0*/ close_time);
+    virtual void __VnoInFunc_free_tr(Vuvm_pkg__Syms* __restrict vlSymsp, IData/*31:0*/ handle);
+    void __VnoInFunc_get_close_time(Vuvm_pkg__Syms* __restrict vlSymsp, QData/*63:0*/ &get_close_time__Vfuncrtn);
+    void __VnoInFunc_get_handle(Vuvm_pkg__Syms* __restrict vlSymsp, IData/*31:0*/ &get_handle__Vfuncrtn);
+    void __VnoInFunc_get_open_time(Vuvm_pkg__Syms* __restrict vlSymsp, QData/*63:0*/ &get_open_time__Vfuncrtn);
+    virtual void __VnoInFunc_get_record_attribute_handle(Vuvm_pkg__Syms* __restrict vlSymsp, IData/*31:0*/ &get_record_attribute_handle__Vfuncrtn);
+    void __VnoInFunc_get_stream(VlProcessRef vlProcess, Vuvm_pkg__Syms* __restrict vlSymsp, VlClassRef<Vuvm_pkg_uvm_pkg__03a__03auvm_tr_stream> &get_stream__Vfuncrtn);
+    void __VnoInFunc_is_closed(Vuvm_pkg__Syms* __restrict vlSymsp, CData/*0:0*/ &is_closed__Vfuncrtn);
+    void __VnoInFunc_is_open(Vuvm_pkg__Syms* __restrict vlSymsp, CData/*0:0*/ &is_open__Vfuncrtn);
+    virtual void __VnoInFunc_link_tr(Vuvm_pkg__Syms* __restrict vlSymsp, IData/*31:0*/ h1, IData/*31:0*/ h2, std::string relation);
+    void __VnoInFunc_m_do_open(VlProcessRef vlProcess, Vuvm_pkg__Syms* __restrict vlSymsp, VlClassRef<Vuvm_pkg_uvm_pkg__03a__03auvm_tr_stream> stream, QData/*63:0*/ open_time, std::string type_name);
+    virtual void __VnoInFunc_m_set_attribute(Vuvm_pkg__Syms* __restrict vlSymsp, IData/*31:0*/ txh, std::string nm, std::string value);
+    virtual void __VnoInFunc_open_file(Vuvm_pkg__Syms* __restrict vlSymsp, CData/*0:0*/ &open_file__Vfuncrtn);
+    virtual void __VnoInFunc_randomize(Vuvm_pkg__Syms* __restrict vlSymsp, IData/*31:0*/ &randomize__Vfuncrtn);
+    void __VnoInFunc_record_field(VlProcessRef vlProcess, Vuvm_pkg__Syms* __restrict vlSymsp, std::string name, VlWide<128>/*4095:0*/ value, IData/*31:0*/ size, IData/*31:0*/ radix);
+    void __VnoInFunc_record_field_int(VlProcessRef vlProcess, Vuvm_pkg__Syms* __restrict vlSymsp, std::string name, QData/*63:0*/ value, IData/*31:0*/ size, IData/*31:0*/ radix);
+    void __VnoInFunc_record_field_real(Vuvm_pkg__Syms* __restrict vlSymsp, std::string name, double value);
+    void __VnoInFunc_record_generic(VlProcessRef vlProcess, Vuvm_pkg__Syms* __restrict vlSymsp, std::string name, std::string value, std::string type_name);
+    void __VnoInFunc_record_object(VlProcessRef vlProcess, Vuvm_pkg__Syms* __restrict vlSymsp, std::string name, VlClassRef<Vuvm_pkg_uvm_pkg__03a__03auvm_object> value);
+    void __VnoInFunc_record_string(VlProcessRef vlProcess, Vuvm_pkg__Syms* __restrict vlSymsp, std::string name, std::string value);
+    void __VnoInFunc_record_time(Vuvm_pkg__Syms* __restrict vlSymsp, std::string name, QData/*63:0*/ value);
+    virtual void __VnoInFunc_set_attribute(Vuvm_pkg__Syms* __restrict vlSymsp, IData/*31:0*/ txh, std::string nm, VlWide<32>/*1023:0*/ value, IData/*31:0*/ radix, IData/*31:0*/ numbits);
+    virtual void __VnoInFunc_use_record_attribute(Vuvm_pkg__Syms* __restrict vlSymsp, CData/*0:0*/ &use_record_attribute__Vfuncrtn);
+  private:
+    void _ctor_var_reset(Vuvm_pkg__Syms* __restrict vlSymsp);
+  public:
+    Vuvm_pkg_uvm_pkg__03a__03auvm_recorder() = default;
+    void init(VlProcessRef vlProcess, Vuvm_pkg__Syms* __restrict vlSymsp, std::string name);
+    virtual ~Vuvm_pkg_uvm_pkg__03a__03auvm_recorder();
+};
+
+
+#endif  // guard

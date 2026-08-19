@@ -1,0 +1,96 @@
+// Verilated -*- C++ -*-
+// DESCRIPTION: Verilator output: Design internal header
+// See Vuvm_pkg.h for the primary calling header
+
+#ifndef VERILATED_VUVM_PKG_UVM_PKG__03A__03AUVM_REG_ITEM__VCLPKG_H_
+#define VERILATED_VUVM_PKG_UVM_PKG__03A__03AUVM_REG_ITEM__VCLPKG_H_  // guard
+
+#include "verilated.h"
+#include "verilated_timing.h"
+#include "verilated_random.h"
+class Vuvm_pkg_uvm_pkg__03a__03auvm_object;
+class Vuvm_pkg_uvm_pkg__03a__03auvm_object_registry__pi15;
+class Vuvm_pkg_uvm_pkg__03a__03auvm_object_wrapper;
+class Vuvm_pkg_uvm_pkg__03a__03auvm_reg_item;
+class Vuvm_pkg_uvm_pkg__03a__03auvm_reg_map;
+class Vuvm_pkg_uvm_pkg__03a__03auvm_sequence_base;
+class Vuvm_pkg_uvm_pkg__03a__03auvm_sequence_item;
+class Vuvm_pkg_uvm_pkg__03a__03auvm_status_container;
+
+
+class Vuvm_pkg__Syms;
+
+class alignas(VL_CACHE_LINE_BYTES) Vuvm_pkg_uvm_pkg__03a__03auvm_reg_item__Vclpkg final {
+  public:
+
+    // DESIGN SPECIFIC STATE
+    std::string __PVT__type_name;
+
+    // INTERNAL VARIABLES
+    Vuvm_pkg__Syms* vlSymsp;
+    const char* vlNamep;
+
+    // CONSTRUCTORS
+    Vuvm_pkg_uvm_pkg__03a__03auvm_reg_item__Vclpkg();
+    ~Vuvm_pkg_uvm_pkg__03a__03auvm_reg_item__Vclpkg();
+    void ctor(Vuvm_pkg__Syms* symsp, const char* namep);
+    void dtor();
+    VL_UNCOPYABLE(Vuvm_pkg_uvm_pkg__03a__03auvm_reg_item__Vclpkg);
+
+    // INTERNAL METHODS
+    void __Vconfigure(bool first);
+    void __VnoInFunc_get_type(Vuvm_pkg__Syms* __restrict vlSymsp, VlClassRef<Vuvm_pkg_uvm_pkg__03a__03auvm_object_registry__pi15> &get_type__Vfuncrtn);
+};
+
+#include "Vuvm_pkg_uvm_pkg__03a__03auvm_sequence_item__Vclpkg.h"
+
+class Vuvm_pkg__Syms;
+
+class Vuvm_pkg_uvm_pkg__03a__03auvm_reg_item : public Vuvm_pkg_uvm_pkg__03a__03auvm_sequence_item {
+  public:
+
+    // DESIGN SPECIFIC STATE
+    IData/*31:0*/ __PVT__element_kind;
+    IData/*31:0*/ __PVT__kind;
+    IData/*31:0*/ __PVT__status;
+    IData/*31:0*/ __PVT__path;
+    IData/*31:0*/ __PVT__prior;
+    IData/*31:0*/ __PVT__lineno;
+    IData/*31:0*/ __Vvalue_size;
+    QData/*63:0*/ __PVT__offset;
+    VlQueue<QData/*63:0*/> __PVT__value;
+    std::string __PVT__bd_kind;
+    std::string __PVT__fname;
+    VlClassRef<Vuvm_pkg_uvm_pkg__03a__03auvm_object> __PVT__element;
+    VlClassRef<Vuvm_pkg_uvm_pkg__03a__03auvm_reg_map> __PVT__local_map;
+    VlClassRef<Vuvm_pkg_uvm_pkg__03a__03auvm_reg_map> __PVT__map;
+    VlClassRef<Vuvm_pkg_uvm_pkg__03a__03auvm_sequence_base> __PVT__parent;
+    VlClassRef<Vuvm_pkg_uvm_pkg__03a__03auvm_object> __PVT__extension;
+
+    // INTERNAL METHODS
+    virtual const char* typeName() const { return "uvm_pkg::uvm_reg_item"; }
+    VlClass* clone() const { return new Vuvm_pkg_uvm_pkg__03a__03auvm_reg_item(*this); }
+    virtual void __VnoInFunc___VBasicRand(Vuvm_pkg__Syms* __restrict vlSymsp, IData/*31:0*/ &__VBasicRand__Vfuncrtn);
+    void __VnoInFunc___VrandCb_post(Vuvm_pkg__Syms* __restrict vlSymsp) {}
+    void __VnoInFunc___VrandCb_pre(Vuvm_pkg__Syms* __restrict vlSymsp) {}
+    virtual void __VnoInFunc___Vresize_constrained_arrays(Vuvm_pkg__Syms* __restrict vlSymsp);
+    virtual void __VnoInFunc___Vsetup_constraints(Vuvm_pkg__Syms* __restrict vlSymsp);
+    void __VnoInFunc____05Fm_uvm_field_automation(VlProcessRef vlProcess, Vuvm_pkg__Syms* __restrict vlSymsp, VlClassRef<Vuvm_pkg_uvm_pkg__03a__03auvm_object> tmp_data___05F, IData/*31:0*/ what___05F, std::string str___05F);
+    virtual void __VnoInFunc_convert2string(VlProcessRef vlProcess, Vuvm_pkg__Syms* __restrict vlSymsp, std::string &convert2string__Vfuncrtn);
+    void __VnoInFunc_create(VlProcessRef vlProcess, Vuvm_pkg__Syms* __restrict vlSymsp, std::string name, VlClassRef<Vuvm_pkg_uvm_pkg__03a__03auvm_object> &create__Vfuncrtn);
+    virtual void __VnoInFunc_do_copy(VlProcessRef vlProcess, Vuvm_pkg__Syms* __restrict vlSymsp, VlClassRef<Vuvm_pkg_uvm_pkg__03a__03auvm_object> rhs);
+    virtual void __VnoInFunc_get_object_type(Vuvm_pkg__Syms* __restrict vlSymsp, VlClassRef<Vuvm_pkg_uvm_pkg__03a__03auvm_object_wrapper> &get_object_type__Vfuncrtn);
+    virtual void __VnoInFunc_get_type_name(Vuvm_pkg__Syms* __restrict vlSymsp, std::string &get_type_name__Vfuncrtn);
+    void __VnoInFunc_max_values_resize_constrained_array(Vuvm_pkg__Syms* __restrict vlSymsp);
+    void __VnoInFunc_max_values_setup_constraint(Vuvm_pkg__Syms* __restrict vlSymsp);
+    virtual void __VnoInFunc_randomize(Vuvm_pkg__Syms* __restrict vlSymsp, IData/*31:0*/ &randomize__Vfuncrtn);
+  private:
+    void _ctor_var_reset(Vuvm_pkg__Syms* __restrict vlSymsp);
+  public:
+    Vuvm_pkg_uvm_pkg__03a__03auvm_reg_item() = default;
+    void init(VlProcessRef vlProcess, Vuvm_pkg__Syms* __restrict vlSymsp, std::string name);
+    virtual ~Vuvm_pkg_uvm_pkg__03a__03auvm_reg_item();
+};
+
+
+#endif  // guard

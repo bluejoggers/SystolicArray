@@ -1,0 +1,104 @@
+// Verilated -*- C++ -*-
+// DESCRIPTION: Verilator output: Design internal header
+// See Vuvm_pkg.h for the primary calling header
+
+#ifndef VERILATED_VUVM_PKG_UVM_PKG__03A__03AUVM_REPORT_OBJECT__VCLPKG_H_
+#define VERILATED_VUVM_PKG_UVM_PKG__03A__03AUVM_REPORT_OBJECT__VCLPKG_H_  // guard
+
+#include "verilated.h"
+#include "verilated_timing.h"
+#include "verilated_random.h"
+class Vuvm_pkg_uvm_pkg__03a__03auvm_coreservice_t;
+class Vuvm_pkg_uvm_pkg__03a__03auvm_object;
+class Vuvm_pkg_uvm_pkg__03a__03auvm_report_handler;
+class Vuvm_pkg_uvm_pkg__03a__03auvm_report_message;
+class Vuvm_pkg_uvm_pkg__03a__03auvm_report_object;
+class Vuvm_pkg_uvm_pkg__03a__03auvm_report_server;
+class Vuvm_pkg_uvm_pkg__03a__03auvm_root;
+
+
+class Vuvm_pkg__Syms;
+
+class alignas(VL_CACHE_LINE_BYTES) Vuvm_pkg_uvm_pkg__03a__03auvm_report_object__Vclpkg final {
+  public:
+
+    // INTERNAL VARIABLES
+    Vuvm_pkg__Syms* vlSymsp;
+    const char* vlNamep;
+
+    // CONSTRUCTORS
+    Vuvm_pkg_uvm_pkg__03a__03auvm_report_object__Vclpkg();
+    ~Vuvm_pkg_uvm_pkg__03a__03auvm_report_object__Vclpkg();
+    void ctor(Vuvm_pkg__Syms* symsp, const char* namep);
+    void dtor();
+    VL_UNCOPYABLE(Vuvm_pkg_uvm_pkg__03a__03auvm_report_object__Vclpkg);
+
+    // INTERNAL METHODS
+    void __Vconfigure(bool first);
+};
+
+#include "Vuvm_pkg_uvm_pkg__03a__03auvm_object__Vclpkg.h"
+
+class Vuvm_pkg__Syms;
+
+class Vuvm_pkg_uvm_pkg__03a__03auvm_report_object : public Vuvm_pkg_uvm_pkg__03a__03auvm_object {
+  public:
+
+    // DESIGN SPECIFIC STATE
+    VlClassRef<Vuvm_pkg_uvm_pkg__03a__03auvm_report_handler> __PVT__m_rh;
+
+    // INTERNAL METHODS
+    virtual const char* typeName() const { return "uvm_pkg::uvm_report_object"; }
+    VlClass* clone() const { return new Vuvm_pkg_uvm_pkg__03a__03auvm_report_object(*this); }
+    virtual void __VnoInFunc___VBasicRand(Vuvm_pkg__Syms* __restrict vlSymsp, IData/*31:0*/ &__VBasicRand__Vfuncrtn);
+    virtual void __VnoInFunc___Vsetup_constraints(Vuvm_pkg__Syms* __restrict vlSymsp);
+    virtual void __VnoInFunc_die(VlProcessRef vlProcess, Vuvm_pkg__Syms* __restrict vlSymsp);
+    void __VnoInFunc_dump_report_state(Vuvm_pkg__Syms* __restrict vlSymsp);
+    void __VnoInFunc_get_report_action(Vuvm_pkg__Syms* __restrict vlSymsp, CData/*1:0*/ severity, std::string id, IData/*31:0*/ &get_report_action__Vfuncrtn);
+    void __VnoInFunc_get_report_file_handle(Vuvm_pkg__Syms* __restrict vlSymsp, CData/*1:0*/ severity, std::string id, IData/*31:0*/ &get_report_file_handle__Vfuncrtn);
+    void __VnoInFunc_get_report_handler(Vuvm_pkg__Syms* __restrict vlSymsp, VlClassRef<Vuvm_pkg_uvm_pkg__03a__03auvm_report_handler> &get_report_handler__Vfuncrtn);
+    void __VnoInFunc_get_report_max_verbosity_level(Vuvm_pkg__Syms* __restrict vlSymsp, IData/*31:0*/ &get_report_max_verbosity_level__Vfuncrtn);
+    void __VnoInFunc_get_report_server(Vuvm_pkg__Syms* __restrict vlSymsp, VlClassRef<Vuvm_pkg_uvm_pkg__03a__03auvm_report_server> &get_report_server__Vfuncrtn);
+    void __VnoInFunc_get_report_verbosity_level(Vuvm_pkg__Syms* __restrict vlSymsp, CData/*1:0*/ severity, std::string id, IData/*31:0*/ &get_report_verbosity_level__Vfuncrtn);
+    virtual void __VnoInFunc_m_get_report_object(Vuvm_pkg__Syms* __restrict vlSymsp, VlClassRef<Vuvm_pkg_uvm_pkg__03a__03auvm_report_object> &m_get_report_object__Vfuncrtn);
+    virtual void __VnoInFunc_randomize(Vuvm_pkg__Syms* __restrict vlSymsp, IData/*31:0*/ &randomize__Vfuncrtn);
+    virtual void __VnoInFunc_report_error_hook(Vuvm_pkg__Syms* __restrict vlSymsp, std::string id, std::string message, IData/*31:0*/ verbosity, std::string filename, IData/*31:0*/ line, CData/*0:0*/ &report_error_hook__Vfuncrtn);
+    virtual void __VnoInFunc_report_fatal_hook(Vuvm_pkg__Syms* __restrict vlSymsp, std::string id, std::string message, IData/*31:0*/ verbosity, std::string filename, IData/*31:0*/ line, CData/*0:0*/ &report_fatal_hook__Vfuncrtn);
+    virtual void __VnoInFunc_report_header(VlProcessRef vlProcess, Vuvm_pkg__Syms* __restrict vlSymsp, IData/*31:0*/ file);
+    virtual void __VnoInFunc_report_hook(Vuvm_pkg__Syms* __restrict vlSymsp, std::string id, std::string message, IData/*31:0*/ verbosity, std::string filename, IData/*31:0*/ line, CData/*0:0*/ &report_hook__Vfuncrtn);
+    virtual void __VnoInFunc_report_info_hook(Vuvm_pkg__Syms* __restrict vlSymsp, std::string id, std::string message, IData/*31:0*/ verbosity, std::string filename, IData/*31:0*/ line, CData/*0:0*/ &report_info_hook__Vfuncrtn);
+    virtual void __VnoInFunc_report_summarize(Vuvm_pkg__Syms* __restrict vlSymsp, IData/*31:0*/ file);
+    virtual void __VnoInFunc_report_warning_hook(Vuvm_pkg__Syms* __restrict vlSymsp, std::string id, std::string message, IData/*31:0*/ verbosity, std::string filename, IData/*31:0*/ line, CData/*0:0*/ &report_warning_hook__Vfuncrtn);
+    void __VnoInFunc_reset_report_handler(Vuvm_pkg__Syms* __restrict vlSymsp);
+    void __VnoInFunc_set_report_default_file(Vuvm_pkg__Syms* __restrict vlSymsp, IData/*31:0*/ file);
+    void __VnoInFunc_set_report_handler(Vuvm_pkg__Syms* __restrict vlSymsp, VlClassRef<Vuvm_pkg_uvm_pkg__03a__03auvm_report_handler> handler);
+    void __VnoInFunc_set_report_id_action(Vuvm_pkg__Syms* __restrict vlSymsp, std::string id, IData/*31:0*/ action);
+    void __VnoInFunc_set_report_id_file(Vuvm_pkg__Syms* __restrict vlSymsp, std::string id, IData/*31:0*/ file);
+    void __VnoInFunc_set_report_id_verbosity(Vuvm_pkg__Syms* __restrict vlSymsp, std::string id, IData/*31:0*/ verbosity);
+    void __VnoInFunc_set_report_max_quit_count(Vuvm_pkg__Syms* __restrict vlSymsp, IData/*31:0*/ max_count);
+    void __VnoInFunc_set_report_severity_action(Vuvm_pkg__Syms* __restrict vlSymsp, CData/*1:0*/ severity, IData/*31:0*/ action);
+    void __VnoInFunc_set_report_severity_file(Vuvm_pkg__Syms* __restrict vlSymsp, CData/*1:0*/ severity, IData/*31:0*/ file);
+    void __VnoInFunc_set_report_severity_id_action(VlProcessRef vlProcess, Vuvm_pkg__Syms* __restrict vlSymsp, CData/*1:0*/ severity, std::string id, IData/*31:0*/ action);
+    void __VnoInFunc_set_report_severity_id_file(Vuvm_pkg__Syms* __restrict vlSymsp, CData/*1:0*/ severity, std::string id, IData/*31:0*/ file);
+    void __VnoInFunc_set_report_severity_id_override(VlProcessRef vlProcess, Vuvm_pkg__Syms* __restrict vlSymsp, CData/*1:0*/ cur_severity, std::string id, CData/*1:0*/ new_severity);
+    void __VnoInFunc_set_report_severity_id_verbosity(Vuvm_pkg__Syms* __restrict vlSymsp, CData/*1:0*/ severity, std::string id, IData/*31:0*/ verbosity);
+    void __VnoInFunc_set_report_severity_override(Vuvm_pkg__Syms* __restrict vlSymsp, CData/*1:0*/ cur_severity, CData/*1:0*/ new_severity);
+    void __VnoInFunc_set_report_verbosity_level(Vuvm_pkg__Syms* __restrict vlSymsp, IData/*31:0*/ verbosity_level);
+    void __VnoInFunc_uvm_get_report_object(Vuvm_pkg__Syms* __restrict vlSymsp, VlClassRef<Vuvm_pkg_uvm_pkg__03a__03auvm_report_object> &uvm_get_report_object__Vfuncrtn);
+    virtual void __VnoInFunc_uvm_process_report_message(VlProcessRef vlProcess, Vuvm_pkg__Syms* __restrict vlSymsp, VlClassRef<Vuvm_pkg_uvm_pkg__03a__03auvm_report_message> report_message);
+    virtual void __VnoInFunc_uvm_report(VlProcessRef vlProcess, Vuvm_pkg__Syms* __restrict vlSymsp, CData/*1:0*/ severity, std::string id, std::string message, IData/*31:0*/ verbosity, std::string filename, IData/*31:0*/ line, std::string context_name, CData/*0:0*/ report_enabled_checked);
+    void __VnoInFunc_uvm_report_enabled(Vuvm_pkg__Syms* __restrict vlSymsp, IData/*31:0*/ verbosity, CData/*1:0*/ severity, std::string id, IData/*31:0*/ &uvm_report_enabled__Vfuncrtn);
+    virtual void __VnoInFunc_uvm_report_error(VlProcessRef vlProcess, Vuvm_pkg__Syms* __restrict vlSymsp, std::string id, std::string message, IData/*31:0*/ verbosity, std::string filename, IData/*31:0*/ line, std::string context_name, CData/*0:0*/ report_enabled_checked);
+    virtual void __VnoInFunc_uvm_report_fatal(VlProcessRef vlProcess, Vuvm_pkg__Syms* __restrict vlSymsp, std::string id, std::string message, IData/*31:0*/ verbosity, std::string filename, IData/*31:0*/ line, std::string context_name, CData/*0:0*/ report_enabled_checked);
+    virtual void __VnoInFunc_uvm_report_info(VlProcessRef vlProcess, Vuvm_pkg__Syms* __restrict vlSymsp, std::string id, std::string message, IData/*31:0*/ verbosity, std::string filename, IData/*31:0*/ line, std::string context_name, CData/*0:0*/ report_enabled_checked);
+    virtual void __VnoInFunc_uvm_report_warning(VlProcessRef vlProcess, Vuvm_pkg__Syms* __restrict vlSymsp, std::string id, std::string message, IData/*31:0*/ verbosity, std::string filename, IData/*31:0*/ line, std::string context_name, CData/*0:0*/ report_enabled_checked);
+  private:
+    void _ctor_var_reset(Vuvm_pkg__Syms* __restrict vlSymsp);
+  public:
+    Vuvm_pkg_uvm_pkg__03a__03auvm_report_object() = default;
+    void init(VlProcessRef vlProcess, Vuvm_pkg__Syms* __restrict vlSymsp, std::string name);
+    virtual ~Vuvm_pkg_uvm_pkg__03a__03auvm_report_object();
+};
+
+
+#endif  // guard

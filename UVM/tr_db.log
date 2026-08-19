@@ -1,0 +1,2 @@
+  CREATE_STREAM @20 {NAME:sequence_in_test T:Transactions SCOPE:uvm_test_top.env_in_test.agent_in_env.sequencer_in_agent STREAM:623}
+  CREATE_STREAM @0 {NAME:sequence_in_test T:Transactions SCOPE:uvm_test_top.env_in_test.agent_in_env.sequencer_in_agent STREAM:623}

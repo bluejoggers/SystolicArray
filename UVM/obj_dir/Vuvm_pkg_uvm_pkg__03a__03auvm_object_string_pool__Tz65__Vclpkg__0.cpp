@@ -1,0 +1,150 @@
+// Verilated -*- C++ -*-
+// DESCRIPTION: Verilator output: Design implementation internals
+// See Vuvm_pkg.h for the primary calling header
+
+#include "Vuvm_pkg__pch.h"
+
+void Vuvm_pkg_uvm_pkg__03a__03auvm_object_string_pool__Tz65__Vclpkg::__VnoInFunc_get_global_pool(Vuvm_pkg__Syms* __restrict vlSymsp, VlClassRef<Vuvm_pkg_uvm_pkg__03a__03auvm_object_string_pool__Tz65> &get_global_pool__Vfuncrtn) {
+    VL_DEBUG_IF(VL_DBG_MSGF("+  Vuvm_pkg_uvm_pkg__03a__03auvm_object_string_pool__Tz65__Vclpkg::__VnoInFunc_get_global_pool\n"); );
+    // Body
+    VlProcessRef vlProcess = std::make_shared<VlProcess>();
+    VlProcess::currentp(vlProcess.get());
+    if ((VlNull{} == this->__PVT__m_global_pool)) {
+        this->__PVT__m_global_pool = VL_NEW(Vuvm_pkg_uvm_pkg__03a__03auvm_object_string_pool__Tz65, vlProcess, vlSymsp, "global_pool"s);
+    }
+    get_global_pool__Vfuncrtn = this->__PVT__m_global_pool;
+}
+
+void Vuvm_pkg_uvm_pkg__03a__03auvm_object_string_pool__Tz65__Vclpkg::__VnoInFunc_get_global(Vuvm_pkg__Syms* __restrict vlSymsp, std::string key, VlClassRef<Vuvm_pkg_uvm_pkg__03a__03auvm_queue__Tz5> &get_global__Vfuncrtn) {
+    VL_DEBUG_IF(VL_DBG_MSGF("+  Vuvm_pkg_uvm_pkg__03a__03auvm_object_string_pool__Tz65__Vclpkg::__VnoInFunc_get_global\n"); );
+    // Body
+    VlProcessRef vlProcess = std::make_shared<VlProcess>();
+    VlProcess::currentp(vlProcess.get());
+    VlClassRef<Vuvm_pkg_uvm_pkg__03a__03auvm_object_string_pool__Tz65> gpool;
+    this->__VnoInFunc_get_global_pool(vlSymsp, gpool);
+    VL_NULL_CHECK(gpool, "../../uvm/distrib/src/base/uvm_pool.svh", 294)->__VnoInFunc_get(vlProcess, vlSymsp, key, get_global__Vfuncrtn);
+}
+
+void Vuvm_pkg_uvm_pkg__03a__03auvm_object_string_pool__Tz65::init(VlProcessRef vlProcess, Vuvm_pkg__Syms* __restrict vlSymsp, std::string name) {
+    Vuvm_pkg_uvm_pkg__03a__03auvm_pool__Tz5_TBz65::init(vlProcess, vlSymsp, name);
+    VL_DEBUG_IF(VL_DBG_MSGF("+              Vuvm_pkg_uvm_pkg__03a__03auvm_object_string_pool__Tz65::new\n"); );
+    // Body
+    VlProcess::currentp(vlProcess.get());
+    _ctor_var_reset(vlSymsp);
+    /*super.new*/;
+}
+
+void Vuvm_pkg_uvm_pkg__03a__03auvm_object_string_pool__Tz65::__VnoInFunc_get_type_name(Vuvm_pkg__Syms* __restrict vlSymsp, std::string &get_type_name__Vfuncrtn) {
+    VL_DEBUG_IF(VL_DBG_MSGF("+              Vuvm_pkg_uvm_pkg__03a__03auvm_object_string_pool__Tz65::__VnoInFunc_get_type_name\n"); );
+    // Body
+    get_type_name__Vfuncrtn = "uvm_obj_str_pool"s;
+}
+
+void Vuvm_pkg_uvm_pkg__03a__03auvm_object_string_pool__Tz65::__VnoInFunc_get(VlProcessRef vlProcess, Vuvm_pkg__Syms* __restrict vlSymsp, std::string key, VlClassRef<Vuvm_pkg_uvm_pkg__03a__03auvm_queue__Tz5> &get__Vfuncrtn) {
+    VL_DEBUG_IF(VL_DBG_MSGF("+              Vuvm_pkg_uvm_pkg__03a__03auvm_object_string_pool__Tz65::__VnoInFunc_get\n"); );
+    // Body
+    VlProcess::currentp(vlProcess.get());
+    VlClassRef<Vuvm_pkg_uvm_pkg__03a__03auvm_queue__Tz5> __VlefCall_0__new;
+    if ((! Vuvm_pkg_uvm_pkg__03a__03auvm_pool__Tz5_TBz65::__PVT__pool.exists(key))) {
+        __VlefCall_0__new = VL_NEW(Vuvm_pkg_uvm_pkg__03a__03auvm_queue__Tz5, vlProcess, vlSymsp, key);
+        Vuvm_pkg_uvm_pkg__03a__03auvm_pool__Tz5_TBz65::__PVT__pool.at(key) 
+            = __VlefCall_0__new;
+    }
+    get__Vfuncrtn = Vuvm_pkg_uvm_pkg__03a__03auvm_pool__Tz5_TBz65::__PVT__pool
+        .at(key);
+}
+
+void Vuvm_pkg_uvm_pkg__03a__03auvm_object_string_pool__Tz65::__VnoInFunc_delete(Vuvm_pkg__Syms* __restrict vlSymsp, std::string key) {
+    VL_DEBUG_IF(VL_DBG_MSGF("+              Vuvm_pkg_uvm_pkg__03a__03auvm_object_string_pool__Tz65::__VnoInFunc_delete\n"); );
+    // Locals
+    IData/*31:0*/ __Vtask_uvm_report_warning__3__verbosity;
+    __Vtask_uvm_report_warning__3__verbosity = 0;
+    IData/*31:0*/ __Vtask_uvm_report_warning__3__line;
+    __Vtask_uvm_report_warning__3__line = 0;
+    CData/*0:0*/ __Vtask_uvm_report_warning__3__report_enabled_checked;
+    __Vtask_uvm_report_warning__3__report_enabled_checked = 0;
+    VlClassRef<Vuvm_pkg_uvm_pkg__03a__03auvm_coreservice_t> __Vfunc_get__4__Vfuncout;
+    VlClassRef<Vuvm_pkg_uvm_pkg__03a__03auvm_root> __Vtask_get_root__5__Vfuncout;
+    // Body
+    VlProcessRef vlProcess = std::make_shared<VlProcess>();
+    VlProcess::currentp(vlProcess.get());
+    IData/*31:0*/ __VlefCall_0__exists;
+    {
+        this->__VnoInFunc_exists(vlSymsp, key, __VlefCall_0__exists);
+        if ((1U & (~ (0U != __VlefCall_0__exists)))) {
+            __Vtask_uvm_report_warning__3__report_enabled_checked = 0U;
+            this->__Vtask_uvm_report_warning__3__context_name = ""s;
+            __Vtask_uvm_report_warning__3__line = 0U;
+            this->__Vtask_uvm_report_warning__3__filename = ""s;
+            __Vtask_uvm_report_warning__3__verbosity = 0x000000c8U;
+            VL_SFORMAT_NX(this->__Vtask_uvm_report_warning__3__message
+                          ,"delete: key '%s' doesn't exist",1
+                          , 'S',&(key));
+            this->__Vtask_uvm_report_warning__3__id = "POOLDEL"s;
+            vlSymsp->TOP__uvm_pkg__03a__03auvm_coreservice_t__Vclpkg.__VnoInFunc_get(vlSymsp, __Vfunc_get__4__Vfuncout);
+            vlSymsp->TOP__uvm_pkg.__PVT__uvm_report_warning__Vstatic__cs 
+                = __Vfunc_get__4__Vfuncout;
+            VL_NULL_CHECK(vlSymsp->TOP__uvm_pkg.__PVT__uvm_report_warning__Vstatic__cs, "../../uvm/distrib/src/base/uvm_globals.svh", 201)->__VnoInFunc_get_root(vlProcess, vlSymsp, __Vtask_get_root__5__Vfuncout);
+            vlSymsp->TOP__uvm_pkg.__PVT__uvm_report_warning__Vstatic__top 
+                = __Vtask_get_root__5__Vfuncout;
+            VL_NULL_CHECK(vlSymsp->TOP__uvm_pkg.__PVT__uvm_report_warning__Vstatic__top, "../../uvm/distrib/src/base/uvm_globals.svh", 202)->__VnoInFunc_uvm_report_warning(vlProcess, vlSymsp, this->__Vtask_uvm_report_warning__3__id, this->__Vtask_uvm_report_warning__3__message, __Vtask_uvm_report_warning__3__verbosity, this->__Vtask_uvm_report_warning__3__filename, __Vtask_uvm_report_warning__3__line, this->__Vtask_uvm_report_warning__3__context_name, (IData)(__Vtask_uvm_report_warning__3__report_enabled_checked));
+            goto __Vlabel0;
+        }
+        Vuvm_pkg_uvm_pkg__03a__03auvm_pool__Tz5_TBz65::__PVT__pool.erase(key);
+        __Vlabel0: ;
+    }
+}
+
+void Vuvm_pkg_uvm_pkg__03a__03auvm_object_string_pool__Tz65::__VnoInFunc_do_print(VlProcessRef vlProcess, Vuvm_pkg__Syms* __restrict vlSymsp, VlClassRef<Vuvm_pkg_uvm_pkg__03a__03auvm_printer> printer) {
+    VL_DEBUG_IF(VL_DBG_MSGF("+              Vuvm_pkg_uvm_pkg__03a__03auvm_object_string_pool__Tz65::__VnoInFunc_do_print\n"); );
+    // Body
+    VlProcess::currentp(vlProcess.get());
+    CData/*0:0*/ __VlefExpr_1;
+    CData/*0:0*/ __VlefExpr_0;
+    std::string key;
+    key = ""s;
+    VL_NULL_CHECK(printer, "../../uvm/distrib/src/base/uvm_pool.svh", 330)->__VnoInFunc_print_array_header(vlSymsp, "pool"s, Vuvm_pkg_uvm_pkg__03a__03auvm_pool__Tz5_TBz65::__PVT__pool.size(), "aa_object_string"s, 0x2eU);
+    __VlefExpr_0 = (0U != Vuvm_pkg_uvm_pkg__03a__03auvm_pool__Tz5_TBz65::__PVT__pool.first(key));
+    if (__VlefExpr_0) {
+        do {
+            VL_NULL_CHECK(printer, "../../uvm/distrib/src/base/uvm_pool.svh", 333)->__VnoInFunc_print_object(vlProcess, vlSymsp, 
+                                                                                VL_CVT_PACK_STR_NN(
+                                                                                VL_CONCATN_NNN(
+                                                                                VL_CONCATN_NNN("["s, key), "]"s)), Vuvm_pkg_uvm_pkg__03a__03auvm_pool__Tz5_TBz65::__PVT__pool
+                                                                                .at(key), 0x5bU);
+            __VlefExpr_1 = (0U != Vuvm_pkg_uvm_pkg__03a__03auvm_pool__Tz5_TBz65::__PVT__pool.next(key));
+        } while (__VlefExpr_1);
+    }
+    VL_NULL_CHECK(printer, "../../uvm/distrib/src/base/uvm_pool.svh", 335)->__VnoInFunc_print_array_footer(vlSymsp, 0U);
+}
+
+void Vuvm_pkg_uvm_pkg__03a__03auvm_object_string_pool__Tz65::__VnoInFunc_randomize(Vuvm_pkg__Syms* __restrict vlSymsp, IData/*31:0*/ &randomize__Vfuncrtn) {
+    VL_DEBUG_IF(VL_DBG_MSGF("+              Vuvm_pkg_uvm_pkg__03a__03auvm_object_string_pool__Tz65::__VnoInFunc_randomize\n"); );
+    // Body
+    IData/*31:0*/ __VlefCall_0____VBasicRand;
+    Vuvm_pkg_uvm_pkg__03a__03auvm_void::__PVT__constraint.clearConstraints();
+    this->__VnoInFunc___Vsetup_constraints(vlSymsp);
+    randomize__Vfuncrtn = Vuvm_pkg_uvm_pkg__03a__03auvm_void::__PVT__constraint.next(__Vm_rng);
+    this->__VnoInFunc___VBasicRand(vlSymsp, __VlefCall_0____VBasicRand);
+    randomize__Vfuncrtn = (randomize__Vfuncrtn & __VlefCall_0____VBasicRand);
+}
+
+void Vuvm_pkg_uvm_pkg__03a__03auvm_object_string_pool__Tz65::__VnoInFunc___Vsetup_constraints(Vuvm_pkg__Syms* __restrict vlSymsp) {
+    VL_DEBUG_IF(VL_DBG_MSGF("+              Vuvm_pkg_uvm_pkg__03a__03auvm_object_string_pool__Tz65::__VnoInFunc___Vsetup_constraints\n"); );
+}
+
+void Vuvm_pkg_uvm_pkg__03a__03auvm_object_string_pool__Tz65::__VnoInFunc___VBasicRand(Vuvm_pkg__Syms* __restrict vlSymsp, IData/*31:0*/ &__VBasicRand__Vfuncrtn) {
+    VL_DEBUG_IF(VL_DBG_MSGF("+              Vuvm_pkg_uvm_pkg__03a__03auvm_object_string_pool__Tz65::__VnoInFunc___VBasicRand\n"); );
+    // Body
+    __VBasicRand__Vfuncrtn = 1U;
+}
+
+void Vuvm_pkg_uvm_pkg__03a__03auvm_object_string_pool__Tz65::_ctor_var_reset(Vuvm_pkg__Syms* __restrict vlSymsp) {
+    VL_DEBUG_IF(VL_DBG_MSGF("+              Vuvm_pkg_uvm_pkg__03a__03auvm_object_string_pool__Tz65::_ctor_var_reset\n"); );
+    // Body
+    (void)vlSymsp;  // Prevent unused variable warning
+}
+
+Vuvm_pkg_uvm_pkg__03a__03auvm_object_string_pool__Tz65::~Vuvm_pkg_uvm_pkg__03a__03auvm_object_string_pool__Tz65() {
+    VL_DEBUG_IF(VL_DBG_MSGF("+              Vuvm_pkg_uvm_pkg__03a__03auvm_object_string_pool__Tz65::~\n"); );
+}

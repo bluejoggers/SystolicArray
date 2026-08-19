@@ -1,0 +1,73 @@
+// Verilated -*- C++ -*-
+// DESCRIPTION: Verilator output: Design internal header
+// See VUVM_regblock.h for the primary calling header
+
+#ifndef VERILATED_VUVM_REGBLOCK_UVM_PKG__03A__03AUVM_AGENT__VCLPKG_H_
+#define VERILATED_VUVM_REGBLOCK_UVM_PKG__03A__03AUVM_AGENT__VCLPKG_H_  // guard
+
+#include "verilated.h"
+#include "verilated_covergroup.h"
+#include "verilated_timing.h"
+#include "verilated_random.h"
+class VUVM_regblock_uvm_pkg__03a__03auvm_agent;
+class VUVM_regblock_uvm_pkg__03a__03auvm_component;
+class VUVM_regblock_uvm_pkg__03a__03auvm_phase;
+class VUVM_regblock_uvm_pkg__03a__03auvm_queue__Tz5;
+class VUVM_regblock_uvm_pkg__03a__03auvm_resource_;
+class VUVM_regblock_uvm_pkg__03a__03auvm_resource__Tz10;
+class VUVM_regblock_uvm_pkg__03a__03auvm_resource__Tz11;
+class VUVM_regblock_uvm_pkg__03a__03auvm_resource__Tz2;
+class VUVM_regblock_uvm_pkg__03a__03auvm_resource__Tz7;
+class VUVM_regblock_uvm_pkg__03a__03auvm_resource__Tz9;
+class VUVM_regblock_uvm_pkg__03a__03auvm_resource_base;
+class VUVM_regblock_uvm_pkg__03a__03auvm_resource_pool;
+
+
+class VUVM_regblock__Syms;
+
+class alignas(VL_CACHE_LINE_BYTES) VUVM_regblock_uvm_pkg__03a__03auvm_agent__Vclpkg final {
+  public:
+
+    // DESIGN SPECIFIC STATE
+    std::string __PVT__type_name;
+
+    // INTERNAL VARIABLES
+    VUVM_regblock__Syms* vlSymsp;
+    const char* vlNamep;
+
+    // CONSTRUCTORS
+    VUVM_regblock_uvm_pkg__03a__03auvm_agent__Vclpkg();
+    ~VUVM_regblock_uvm_pkg__03a__03auvm_agent__Vclpkg();
+    void ctor(VUVM_regblock__Syms* symsp, const char* namep);
+    void dtor();
+    VL_UNCOPYABLE(VUVM_regblock_uvm_pkg__03a__03auvm_agent__Vclpkg);
+
+    // INTERNAL METHODS
+    void __Vconfigure(bool first);
+};
+
+#include "VUVM_regblock_uvm_pkg__03a__03auvm_component__Vclpkg.h"
+
+class VUVM_regblock__Syms;
+
+class VUVM_regblock_uvm_pkg__03a__03auvm_agent : public VUVM_regblock_uvm_pkg__03a__03auvm_component {
+  public:
+
+    // DESIGN SPECIFIC STATE
+    CData/*0:0*/ __PVT__is_active;
+
+    // INTERNAL METHODS
+    virtual const char* typeName() const { return "uvm_pkg::uvm_agent"; }
+    virtual void __VnoInFunc___VBasicRand(VUVM_regblock__Syms* __restrict vlSymsp, IData/*31:0*/ &__VBasicRand__Vfuncrtn);
+    virtual void __VnoInFunc___Vsetup_constraints(VUVM_regblock__Syms* __restrict vlSymsp);
+    void __VnoInFunc_build_phase(VlProcessRef vlProcess, VUVM_regblock__Syms* __restrict vlSymsp, VlClassRef<VUVM_regblock_uvm_pkg__03a__03auvm_phase> phase);
+    virtual void __VnoInFunc_get_is_active(VUVM_regblock__Syms* __restrict vlSymsp, CData/*0:0*/ &get_is_active__Vfuncrtn);
+    virtual void __VnoInFunc_get_type_name(VUVM_regblock__Syms* __restrict vlSymsp, std::string &get_type_name__Vfuncrtn);
+    virtual void __VnoInFunc_randomize(VUVM_regblock__Syms* __restrict vlSymsp, IData/*31:0*/ &randomize__Vfuncrtn);
+    VUVM_regblock_uvm_pkg__03a__03auvm_agent() = default;
+    void init(VlProcessRef vlProcess, VUVM_regblock__Syms* __restrict vlSymsp, std::string name, VlClassRef<VUVM_regblock_uvm_pkg__03a__03auvm_component> parent);
+    virtual ~VUVM_regblock_uvm_pkg__03a__03auvm_agent();
+};
+
+
+#endif  // guard

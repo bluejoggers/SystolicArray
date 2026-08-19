@@ -1,0 +1,65 @@
+// Verilated -*- C++ -*-
+// DESCRIPTION: Verilator output: Design implementation internals
+// See VUVM_regblock.h for the primary calling header
+
+#include "VUVM_regblock__pch.h"
+
+void VUVM_regblock_uvm_pkg__03a__03auvm_callback_iter__Tz98_TBz99::init(VUVM_regblock__Syms* __restrict vlSymsp, VlClassRef<VUVM_regblock_uvm_pkg__03a__03auvm_vreg> obj) {
+    VL_DEBUG_IF(VL_DBG_MSGF("+            VUVM_regblock_uvm_pkg__03a__03auvm_callback_iter__Tz98_TBz99::new\n"); );
+    // Body
+    _ctor_var_reset(vlSymsp);
+    this->__PVT__m_obj = obj;
+}
+
+void VUVM_regblock_uvm_pkg__03a__03auvm_callback_iter__Tz98_TBz99::__VnoInFunc_first(VUVM_regblock__Syms* __restrict vlSymsp, VlClassRef<VUVM_regblock_uvm_pkg__03a__03auvm_vreg_cbs> &first__Vfuncrtn) {
+    VL_DEBUG_IF(VL_DBG_MSGF("+            VUVM_regblock_uvm_pkg__03a__03auvm_callback_iter__Tz98_TBz99::__VnoInFunc_first\n"); );
+    // Locals
+    VlClassRef<VUVM_regblock_uvm_pkg__03a__03auvm_vreg_cbs> __Vfunc_get_first__0__Vfuncout;
+    // Body
+    vlSymsp->TOP__uvm_pkg__03a__03auvm_callbacks__Tz98_TBz99__Vclpkg.__VnoInFunc_get_first(vlSymsp, this->__PVT__m_i, this->__PVT__m_obj, __Vfunc_get_first__0__Vfuncout);
+    this->__PVT__m_cb = __Vfunc_get_first__0__Vfuncout;
+    first__Vfuncrtn = this->__PVT__m_cb;
+}
+
+void VUVM_regblock_uvm_pkg__03a__03auvm_callback_iter__Tz98_TBz99::__VnoInFunc_last(VUVM_regblock__Syms* __restrict vlSymsp, VlClassRef<VUVM_regblock_uvm_pkg__03a__03auvm_vreg_cbs> &last__Vfuncrtn) {
+    VL_DEBUG_IF(VL_DBG_MSGF("+            VUVM_regblock_uvm_pkg__03a__03auvm_callback_iter__Tz98_TBz99::__VnoInFunc_last\n"); );
+    // Locals
+    VlClassRef<VUVM_regblock_uvm_pkg__03a__03auvm_vreg_cbs> __Vfunc_get_last__1__Vfuncout;
+    // Body
+    vlSymsp->TOP__uvm_pkg__03a__03auvm_callbacks__Tz98_TBz99__Vclpkg.__VnoInFunc_get_last(vlSymsp, this->__PVT__m_i, this->__PVT__m_obj, __Vfunc_get_last__1__Vfuncout);
+    this->__PVT__m_cb = __Vfunc_get_last__1__Vfuncout;
+    last__Vfuncrtn = this->__PVT__m_cb;
+}
+
+void VUVM_regblock_uvm_pkg__03a__03auvm_callback_iter__Tz98_TBz99::__VnoInFunc_next(VUVM_regblock__Syms* __restrict vlSymsp, VlClassRef<VUVM_regblock_uvm_pkg__03a__03auvm_vreg_cbs> &next__Vfuncrtn) {
+    VL_DEBUG_IF(VL_DBG_MSGF("+            VUVM_regblock_uvm_pkg__03a__03auvm_callback_iter__Tz98_TBz99::__VnoInFunc_next\n"); );
+    // Locals
+    VlClassRef<VUVM_regblock_uvm_pkg__03a__03auvm_vreg_cbs> __Vfunc_get_next__2__Vfuncout;
+    // Body
+    vlSymsp->TOP__uvm_pkg__03a__03auvm_callbacks__Tz98_TBz99__Vclpkg.__VnoInFunc_get_next(vlSymsp, this->__PVT__m_i, this->__PVT__m_obj, __Vfunc_get_next__2__Vfuncout);
+    this->__PVT__m_cb = __Vfunc_get_next__2__Vfuncout;
+    next__Vfuncrtn = this->__PVT__m_cb;
+}
+
+void VUVM_regblock_uvm_pkg__03a__03auvm_callback_iter__Tz98_TBz99::__VnoInFunc_prev(VUVM_regblock__Syms* __restrict vlSymsp, VlClassRef<VUVM_regblock_uvm_pkg__03a__03auvm_vreg_cbs> &prev__Vfuncrtn) {
+    VL_DEBUG_IF(VL_DBG_MSGF("+            VUVM_regblock_uvm_pkg__03a__03auvm_callback_iter__Tz98_TBz99::__VnoInFunc_prev\n"); );
+    // Locals
+    VlClassRef<VUVM_regblock_uvm_pkg__03a__03auvm_vreg_cbs> __Vfunc_get_prev__3__Vfuncout;
+    // Body
+    vlSymsp->TOP__uvm_pkg__03a__03auvm_callbacks__Tz98_TBz99__Vclpkg.__VnoInFunc_get_prev(vlSymsp, this->__PVT__m_i, this->__PVT__m_obj, __Vfunc_get_prev__3__Vfuncout);
+    this->__PVT__m_cb = __Vfunc_get_prev__3__Vfuncout;
+    prev__Vfuncrtn = this->__PVT__m_cb;
+}
+
+void VUVM_regblock_uvm_pkg__03a__03auvm_callback_iter__Tz98_TBz99::__VnoInFunc_get_cb(VUVM_regblock__Syms* __restrict vlSymsp, VlClassRef<VUVM_regblock_uvm_pkg__03a__03auvm_vreg_cbs> &get_cb__Vfuncrtn) {
+    VL_DEBUG_IF(VL_DBG_MSGF("+            VUVM_regblock_uvm_pkg__03a__03auvm_callback_iter__Tz98_TBz99::__VnoInFunc_get_cb\n"); );
+    // Body
+    get_cb__Vfuncrtn = this->__PVT__m_cb;
+}
+
+void VUVM_regblock_uvm_pkg__03a__03auvm_callback_iter__Tz98_TBz99::_ctor_var_reset(VUVM_regblock__Syms* __restrict vlSymsp) {
+    VL_DEBUG_IF(VL_DBG_MSGF("+            VUVM_regblock_uvm_pkg__03a__03auvm_callback_iter__Tz98_TBz99::_ctor_var_reset\n"); );
+    // Body
+    (void)vlSymsp;  // Prevent unused variable warning
+    __PVT__m_i = 0;
+}
