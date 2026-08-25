@@ -142,7 +142,7 @@ class reg_monitor extends uvm_monitor;
                 monitor_analysis_port.write(txn);
             end
             else if (vif.r_enable) begin
-                txn = reg_txn::type_id::create("txn");
+                txn = reg_txn::type_id::cre//ate("txn");
 
                 txn.r_enable = vif.r_enable;
                 txn.address = vif.address;
@@ -391,5 +391,4 @@ module UVM_regblock;
         uvm_config_db #(virtual reg_if)::set(null, "*", "vif", rif);
         run_test("reg_test");
     end
-
 endmodule

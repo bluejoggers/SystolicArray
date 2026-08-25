@@ -1,4 +1,3 @@
-
 // 1. Primitive Support Blocks: Full Adder (FA) and Half Adder (HA)
 
 module FA (

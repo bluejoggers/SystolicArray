@@ -1,0 +1,85 @@
+// Verilated -*- C++ -*-
+// DESCRIPTION: Verilator output: Design internal header
+// See VUVM_Register8b.h for the primary calling header
+
+#ifndef VERILATED_VUVM_REGISTER8B_UVM_PKG__03A__03AUVM_PRINTER_KNOBS__VCLPKG_H_
+#define VERILATED_VUVM_REGISTER8B_UVM_PKG__03A__03AUVM_PRINTER_KNOBS__VCLPKG_H_  // guard
+
+#include "verilated.h"
+#include "verilated_cov.h"
+#include "verilated_covergroup.h"
+#include "verilated_timing.h"
+#include "verilated_random.h"
+
+
+class VUVM_Register8b__Syms;
+
+class alignas(VL_CACHE_LINE_BYTES) VUVM_Register8b_uvm_pkg__03a__03auvm_printer_knobs__Vclpkg final {
+  public:
+
+    // INTERNAL VARIABLES
+    VUVM_Register8b__Syms* vlSymsp;
+    const char* vlNamep;
+
+    // CONSTRUCTORS
+    VUVM_Register8b_uvm_pkg__03a__03auvm_printer_knobs__Vclpkg();
+    ~VUVM_Register8b_uvm_pkg__03a__03auvm_printer_knobs__Vclpkg();
+    void ctor(VUVM_Register8b__Syms* symsp, const char* namep);
+    void dtor();
+    VL_UNCOPYABLE(VUVM_Register8b_uvm_pkg__03a__03auvm_printer_knobs__Vclpkg);
+
+    // INTERNAL METHODS
+    void __Vconfigure(bool first);
+    void __vlCoverInsert(uint32_t* countp, bool enable, bool localCounter, const char* filenamep, int lineno, int column,
+        const char* hierp, const char* pagep, const char* commentp, const char* linescovp,
+        const char* fsmVarp, const char* fsmFromp, const char* fsmTop, const char* fsmTagp);
+};
+
+
+class VUVM_Register8b__Syms;
+
+class VUVM_Register8b_uvm_pkg__03a__03auvm_printer_knobs : public virtual VlClass {
+  public:
+
+    // DESIGN SPECIFIC STATE
+    CData/*0:0*/ __PVT__header;
+    CData/*0:0*/ __PVT__footer;
+    CData/*0:0*/ __PVT__full_name;
+    CData/*0:0*/ __PVT__identifier;
+    CData/*0:0*/ __PVT__type_name;
+    CData/*0:0*/ __PVT__size;
+    CData/*0:0*/ __PVT__reference;
+    CData/*0:0*/ __PVT__show_root;
+    CData/*0:0*/ __PVT__show_radix;
+    CData/*0:0*/ __PVT__sprint;
+    IData/*31:0*/ __PVT__depth;
+    IData/*31:0*/ __PVT__begin_elements;
+    IData/*31:0*/ __PVT__end_elements;
+    IData/*31:0*/ __PVT__indent;
+    IData/*31:0*/ __PVT__mcd;
+    IData/*31:0*/ __PVT__default_radix;
+    IData/*31:0*/ __PVT__max_width;
+    IData/*31:0*/ __PVT__name_width;
+    IData/*31:0*/ __PVT__type_width;
+    IData/*31:0*/ __PVT__size_width;
+    IData/*31:0*/ __PVT__value_width;
+    std::string __PVT__prefix;
+    std::string __PVT__separator;
+    std::string __PVT__dec_radix;
+    std::string __PVT__bin_radix;
+    std::string __PVT__oct_radix;
+    std::string __PVT__unsigned_radix;
+    std::string __PVT__hex_radix;
+    std::string __PVT__truncation;
+
+    // INTERNAL METHODS
+    virtual const char* typeName() const { return "uvm_pkg::uvm_printer_knobs"; }
+    VlClass* clone() const { return new VUVM_Register8b_uvm_pkg__03a__03auvm_printer_knobs(*this); }
+    void __VnoInFunc_get_radix_str(VUVM_Register8b__Syms* __restrict vlSymsp, IData/*31:0*/ radix, std::string &get_radix_str__Vfuncrtn);
+    VUVM_Register8b_uvm_pkg__03a__03auvm_printer_knobs() = default;
+    void init(VUVM_Register8b__Syms* __restrict vlSymsp);
+    ~VUVM_Register8b_uvm_pkg__03a__03auvm_printer_knobs() {}
+};
+
+
+#endif  // guard
