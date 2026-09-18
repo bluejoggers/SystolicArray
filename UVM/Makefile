@@ -1,5 +1,5 @@
 # Define your variables here so they are easy to change later
-TOP = UVM_Activator
+TOP = UVM_UnifiedBuffer
 UVM_SRC = ../../uvm/distrib/src
 
 # The massive list of Verilator flags

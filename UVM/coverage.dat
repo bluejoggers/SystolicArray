@@ -1,1 +1,22 @@
 # SystemC::Coverage-3
+C 'tcovergrouppagev_covergroup/__vlAnonCG_ub_bank_cgfUVM_UnifiedBuffer.svl453n18binauto_0h__vlAnonCG_ub_bank_cg.cp_norm.auto_0' 984
+C 'tcovergrouppagev_covergroup/__vlAnonCG_ub_bank_cgfUVM_UnifiedBuffer.svl453n18binauto_1h__vlAnonCG_ub_bank_cg.cp_norm.auto_1' 600
+C 'tcovergrouppagev_covergroup/__vlAnonCG_ub_bank_cgfUVM_UnifiedBuffer.svl454n18binauto_0h__vlAnonCG_ub_bank_cg.cp_host.auto_0' 1000
+C 'tcovergrouppagev_covergroup/__vlAnonCG_ub_bank_cgfUVM_UnifiedBuffer.svl454n18binauto_1h__vlAnonCG_ub_bank_cg.cp_host.auto_1' 584
+C 'tcovergrouppagev_covergroup/__vlAnonCG_ub_bank_cgfUVM_UnifiedBuffer.svl455n18binauto_0h__vlAnonCG_ub_bank_cg.cp_read.auto_0' 432
+C 'tcovergrouppagev_covergroup/__vlAnonCG_ub_bank_cgfUVM_UnifiedBuffer.svl455n18binauto_1h__vlAnonCG_ub_bank_cg.cp_read.auto_1' 1152
+C 'tcovergrouppagev_covergroup/__vlAnonCG_ub_bank_cgfUVM_UnifiedBuffer.svl458n25binauto_0_x_auto_0cross1Cbauto_0,auto_0h__vlAnonCG_ub_bank_cg.cx_arbitration.auto_0_x_auto_0' 615
+C 'tcovergrouppagev_covergroup/__vlAnonCG_ub_bank_cgfUVM_UnifiedBuffer.svl458n25binauto_0_x_auto_1cross1Cbauto_0,auto_1h__vlAnonCG_ub_bank_cg.cx_arbitration.auto_0_x_auto_1' 369
+C 'tcovergrouppagev_covergroup/__vlAnonCG_ub_bank_cgfUVM_UnifiedBuffer.svl458n25binauto_1_x_auto_0cross1Cbauto_1,auto_0h__vlAnonCG_ub_bank_cg.cx_arbitration.auto_1_x_auto_0' 385
+C 'tcovergrouppagev_covergroup/__vlAnonCG_ub_bank_cgfUVM_UnifiedBuffer.svl458n25binauto_1_x_auto_1cross1Cbauto_1,auto_1h__vlAnonCG_ub_bank_cg.cx_arbitration.auto_1_x_auto_1' 215
+C 'tcovergrouppagev_covergroup/__vlAnonCG_ub_bank_cgfUVM_UnifiedBuffer.svl467n18binfirst_addrh__vlAnonCG_ub_bank_cg.cp_w_addr.first_addr' 0
+C 'tcovergrouppagev_covergroup/__vlAnonCG_ub_bank_cgfUVM_UnifiedBuffer.svl468n18binlast_addrh__vlAnonCG_ub_bank_cg.cp_w_addr.last_addr' 0
+C 'tcovergrouppagev_covergroup/__vlAnonCG_ub_bank_cgfUVM_UnifiedBuffer.svl469n18binmiddleh__vlAnonCG_ub_bank_cg.cp_w_addr.middle' 969
+C 'tcovergrouppagev_covergroup/__vlAnonCG_ub_bank_cgfUVM_UnifiedBuffer.svl473n18binfirst_addrh__vlAnonCG_ub_bank_cg.cp_r_addr.first_addr' 2
+C 'tcovergrouppagev_covergroup/__vlAnonCG_ub_bank_cgfUVM_UnifiedBuffer.svl474n18binlast_addrh__vlAnonCG_ub_bank_cg.cp_r_addr.last_addr' 0
+C 'tcovergrouppagev_covergroup/__vlAnonCG_ub_bank_cgfUVM_UnifiedBuffer.svl475n18binmiddleh__vlAnonCG_ub_bank_cg.cp_r_addr.middle' 1150
+C 'tcovergrouppagev_covergroup/__vlAnonCG_ub_bank_cgfUVM_UnifiedBuffer.svl480n18binsame_addressh__vlAnonCG_ub_bank_cg.cp_rw_collision.same_address' 1
+C 'tcovergrouppagev_covergroup/__vlAnonCG_ub_bank_cgfUVM_UnifiedBuffer.svl481n18bindiff_addressh__vlAnonCG_ub_bank_cg.cp_rw_collision.diff_address' 764
+C 'tcovergrouppagev_covergroup/__vlAnonCG_ub_bank_cgfUVM_UnifiedBuffer.svl486n18binzeroh__vlAnonCG_ub_bank_cg.cp_w_data.zero' 3
+C 'tcovergrouppagev_covergroup/__vlAnonCG_ub_bank_cgfUVM_UnifiedBuffer.svl487n18binsaturatedh__vlAnonCG_ub_bank_cg.cp_w_data.saturated' 1
+C 'tcovergrouppagev_covergroup/__vlAnonCG_ub_bank_cgfUVM_UnifiedBuffer.svl488n18bintypicalh__vlAnonCG_ub_bank_cg.cp_w_data.typical' 965

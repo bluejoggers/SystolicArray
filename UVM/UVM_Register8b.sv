@@ -165,7 +165,6 @@ class reg_coverage extends uvm_subscriber #(
 
     covergroup reg_cg;
         option.per_instance = 1;
-        
         cp_enable : coverpoint txn.enable;
         cp_data_in : coverpoint txn.data_in {
             bins all_0s = {8'h00};
@@ -211,7 +210,7 @@ class reg_sequence extends uvm_sequence #(
 );
     `uvm_object_utils(reg_sequence)
 
-    function new (string name = "reg_sequence");
+    virtual function new (string name = "reg_sequence");
         super.new(name);
     endfunction
 
