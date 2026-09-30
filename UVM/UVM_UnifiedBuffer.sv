@@ -173,7 +173,7 @@ endclass
 class ub_driver #(
     parameter int B = 8, 
     parameter int D = 4096
-    ) extends uvm_driver #(ub_txn #(B, D));
+)   extends uvm_driver #(ub_txn #(B, D));
 
     `uvm_component_param_utils(ub_driver #(B, D))
 

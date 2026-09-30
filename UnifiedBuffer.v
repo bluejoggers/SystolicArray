@@ -84,17 +84,17 @@ module unified_buffer #(
     // ---- WRITE PORT 1: from the on-chip Normalization/Quantization block ----
     input wire [NUM_BANKS-1:0]                  norm_write_req,     // Per-bank write request (NOT a single shared enable)
     input wire [(NUM_BANKS*$clog2(DEPTH))-1:0]  norm_write_address, // One write address per bank
-    input wire [NUM_BANKS*32-1:0]               norm_write_data,    // Concatenated 32-bit words, one per bank
+    input wire [(NUM_BANKS*8)-1:0]               norm_write_data,    // Concatenated 32-bit words, one per bank
 
     // ---- WRITE PORT 2: from off-chip memory via the Host Interface / DMA ----
     input wire [NUM_BANKS-1:0]                  host_write_req,     // Per-bank write request
     input wire [(NUM_BANKS*$clog2(DEPTH))-1:0]  host_write_address, // One write address per bank
-    input wire [NUM_BANKS*32-1:0]               host_write_data,    // Concatenated 32-bit words, one per bank
+    input wire [(NUM_BANKS*8)-1:0]               host_write_data,    // Concatenated 32-bit words, one per bank
 
     // ---- READ PORT: toward MXU (next-layer activations) / Host Interface readback ----
     input wire read_enable,
     input wire [(NUM_BANKS*$clog2(DEPTH))-1:0]  read_address,       // One read address per bank
-    output reg  [NUM_BANKS*32-1:0]               read_data,          // Concatenated 32-bit words, one per bank
+    output reg  [(NUM_BANKS*8)-1:0]               read_data,          // Concatenated 32-bit words, one per bank
 
     // ---- STATUS: flags which bank(s) had a NORM write dropped this cycle due to HOST priority ----
     output wire [NUM_BANKS-1:0]                  write_conflict
@@ -114,11 +114,11 @@ module unified_buffer #(
 
             // Per-bank address/data slices for both write sources
             wire [ADDR_WIDTH-1:0] norm_addr = norm_write_address[bank*ADDR_WIDTH +: ADDR_WIDTH];
-            wire [31:0]           norm_data = norm_write_data   [bank*32 +: 32];
+            wire [7:0]           norm_data = norm_write_data   [bank*8 +: 8];
             wire                  norm_req  = norm_write_req[bank];
 
             wire [ADDR_WIDTH-1:0] host_addr = host_write_address[bank*ADDR_WIDTH +: ADDR_WIDTH];
-            wire [31:0]           host_data = host_write_data   [bank*32 +: 32];
+            wire [7:0]           host_data = host_write_data   [bank*8 +: 8];
             wire                  host_req  = host_write_req[bank];
 
             wire [ADDR_WIDTH-1:0] rd_addr   = read_address[bank*ADDR_WIDTH +: ADDR_WIDTH];
@@ -126,27 +126,27 @@ module unified_buffer #(
             // ---- Arbiter: HOST wins on simultaneous request to this bank ----
             wire bank_write_en   = norm_req | host_req;
             wire [ADDR_WIDTH-1:0] bank_wr_addr = host_req ? host_addr : norm_addr;
-            wire [31:0]           bank_wr_data = host_req ? host_data : norm_data;
+            wire [7:0]           bank_wr_data = host_req ? host_data : norm_data;
             assign write_conflict[bank] = norm_req & host_req;   // NORM write dropped this cycle when this is 1
 
             // The memory array for this bank: 4096 words x 32 bits = 16 KiB
-            reg [31:0] mem [0:DEPTH-1];
+            reg [7:0] mem [0:DEPTH-1];
 
             integer i;
 
             always @(posedge clock) begin
                 if (reset) begin
                     for (i = 0; i < DEPTH; i = i + 1) begin
-                        mem[i] <= 32'sd0;
+                        mem[i] <= 8'sd0;
                     end
-                    read_data[bank*32 +: 32] <= 32'sd0;
+                    read_data[bank*8 +: 8] <= 8'sd0;
                 end else begin
                     // READ executes first in program order so it captures
                     // the OLD value ahead of this cycle's winning write --
                     // matches old-data-on-collision behaviour verified in
                     // simulation.
                     if (read_enable) begin
-                        read_data[bank*32 +: 32] <= mem[rd_addr];
+                        read_data[bank*8 +: 8] <= mem[rd_addr];
                     end
                     if (bank_write_en) begin
                         mem[bank_wr_addr] <= bank_wr_data;

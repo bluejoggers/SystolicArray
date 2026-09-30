@@ -1,9 +1,10 @@
 # Define your variables here so they are easy to change later
-TOP = UVM_UnifiedBuffer
+TOP = UVM_TPU
 UVM_SRC = ../../uvm/distrib/src
+RTL_SRC = ../
 
 # The massive list of Verilator flags
-FLAGS = --binary --top-module $(TOP) --timing --coverage-user -Wno-lint -Wno-COVERIGN -Wno-style -Wno-SYMRSVDWORD -Wno-IGNOREDRETURN -j 0 +define+UVM_NO_DPI
+FLAGS = --binary --top-module $(TOP) --timing --coverage-user -Wno-lint -Wno-COVERIGN -Wno-style -Wno-SYMRSVDWORD -Wno-IGNOREDRETURN -j 0 +define+UVM_NO_DPI -y $(RTL_SRC) +libext+.v+.sv
 
 # Default target: Compiles the code
 compile:

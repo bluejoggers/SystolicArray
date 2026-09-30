@@ -12,12 +12,13 @@ module arraydatapath #(
     input wire [N-1:0] enableSreg,
     input wire [N-1:0] enableCreg, // Enable signals for Activation, Weight, Sumin, Carryin registers for all PEs in the array
 
-    input wire [(N*8-1):0] activation_in, // 8-bit Input Activations for the first column of PEs
-    input wire [(N*8-1):0] weight_in,     // 8-bit Input Weights for the first row of PEs
+    input wire [(N*8)-1:0] activation_in, // 8-bit Input Activations for the first column of PEs
+    input wire [(N*8)-1:0] weight_in,     // 8-bit Input Weights for the first row of PEs
 
-    output wire [N*32-1:0] accumulator_sum_out , // 32-bitx8 Output Accumulated Sums from the last row of PEs
-    output wire [N*32-1:0] accumulator_carry_out  // 32-bitx8 Output Accumulated Carries from the last row of PEs
+    output wire [(N*32)-1:0] partial_sum
 );
+    wire signed [N*32-1:0] accumulator_sum_out; // 32-bitx8 Output Accumulated Sums from the last row of PEs
+    wire signed [N*32-1:0] accumulator_carry_out; // 32-bitx8 Output Accumulated Carries from the last row of PEs
 
     // -------------------------------------------------------------
     // Structured Mesh Network Interconnects (Padded with +1 for out-of-bounds)
@@ -93,6 +94,16 @@ module arraydatapath #(
             assign accumulator_carry_out[(idx*32)+:32] = c_mesh[N][idx];
         end
     endgenerate 
+
+    // -------------------------------------------------------------
+    // Parameterized Boundary Summing to generate Partial Sums for the Accumulator
+    // -------------------------------------------------------------
+
+    generate
+        for (idx = 0; idx < N; idx = idx + 1) begin : bottom_adders
+            assign partial_sum [(idx*32)+:32] = accumulator_sum_out [(idx*32)+:32] + accumulator_carry_out [(idx*32)+:32];
+        end
+    endgenerate
 
 endmodule 
 
