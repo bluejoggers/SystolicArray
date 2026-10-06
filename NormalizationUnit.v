@@ -7,11 +7,11 @@ module normalizer #(
     parameter BITS = 32 // Bit width of the input and output data (32 bits per PE to accommodate the accumulated sums from the accumulator column)
 )(
     input wire clock,
-    input wire [0:INPUT_WIDTH*BITS-1] data_in, // Concatenated input data from the Activation block column (32 bits per PE)
+    input wire [(INPUT_WIDTH*BITS)-1:0] data_in, // Concatenated input data from the Activation block column (32 bits per PE)
     input wire [15:0] gain , // Gain parameters for batch normalization (16 bits fixed-point representation for each PE)
     input wire [BITS-1:0] bias, // Bias parameters for batch normalization (32 bits fixed-point representation for each PE)
     input wire [4:0] shift, // Shift parameters for batch normalization (5 bits to allow for shifts up to 31 for each PE)
-    output wire [0:INPUT_WIDTH*BITS-1] data_out // Concatenated output data after normalization (32 bits per PE)
+    output wire [(INPUT_WIDTH*BITS)-1:0] data_out // Concatenated output data after normalization (32 bits per PE)
 );
 
     reg [15:0] gain_reg; // Register to hold the gain value for each clock cycle

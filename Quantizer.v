@@ -2,9 +2,12 @@ module quantize #(
     parameter BITS = 32
 )(
     input wire clock,
+    input wire reset,
+
     input wire signed [BITS-1:0] q_data_in,
     input wire signed [15:0] inv_scale,
     input wire signed [7:0] zero_point,
+
     output wire signed [7:0] q_data_out
 );
     reg [7:0] q_reg;
@@ -24,7 +27,9 @@ module quantize #(
     assign biased = scaled + zero_point_extended;
 
     always @(posedge clock) begin
-        if (biased > 32'sd127)
+        if (reset)
+            q_reg <= 8'b0;
+        else if (biased > 32'sd127)
             q_reg <= 8'sd127;
         else if (biased < -32'sd128)
             q_reg <= -8'sd128;

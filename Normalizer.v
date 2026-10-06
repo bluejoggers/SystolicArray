@@ -23,11 +23,11 @@ data_in × gain_real = 200 × 0.5 = 100
 module normalize #(
     parameter BITS = 32 // Bit width of the input and output data (32 bits per PE to accommodate the accumulated sums from the accumulator column)
 )(
-    input wire [BITS-1:0] data_in, // Input data from the accumulator column (32 bits per PE)
-    input wire [15:0] gain, // Gain parameter for batch normalization (16 bits fixed-point representation)
-    input wire [BITS-1:0] bias, // Bias parameter for batch normalization (32 bits fixed-point representation)
+    input wire signed [BITS-1:0] data_in, // Input data from the accumulator column (32 bits per PE)
+    input wire signed [15:0] gain, // Gain parameter for batch normalization (16 bits fixed-point representation)
+    input wire signed [BITS-1:0] bias, // Bias parameter for batch normalization (32 bits fixed-point representation)
     input wire [4:0] shift, // Shift parameter for batch normalization (5 bits to allow for shifts up to 31)
-    output wire [BITS-1:0] data_out // Output data after normalization (32 bits per PE)
+    output wire signed [BITS-1:0] data_out // Output data after normalization (32 bits per PE)
 );
 
     wire [BITS+16-1:0] multiplied_data; // Wire to hold the intermediate data multiplied by gain and shiftbefore applying bias
