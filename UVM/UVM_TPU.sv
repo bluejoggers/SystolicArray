@@ -144,6 +144,79 @@ endmodule
 
 
 
+module deskew_buffer #(
+    parameter NUM_LANES  = 8,   // Must match arraydatapath's N
+    parameter DATA_WIDTH = 32   // partial_sum is 32 bits per column
+)(
+    input  wire clock,
+    input  wire reset,
+
+    input  wire                            valid_in,   // Pulses whenever partial_sum carries a meaningful diagonal wavefront sample
+    input  wire [NUM_LANES*DATA_WIDTH-1:0] vector_in,  // arraydatapath's `partial_sum`, still diagonally skewed
+
+    output wire                            valid_out,  // Single aligned pulse -- wire directly into Accumulator's mxu_write_enable
+    output wire [NUM_LANES*DATA_WIDTH-1:0] vector_out  // Deskewed, clean horizontal wave for the Accumulator
+);
+
+    genvar r;
+    generate
+        for (r = 0; r < NUM_LANES; r = r + 1) begin : lane_deskew
+
+            localparam DELAY = NUM_LANES - 1 - r;
+
+            if (DELAY == 0) begin : lane_passthrough
+                assign vector_out[r*DATA_WIDTH +: DATA_WIDTH] = vector_in[r*DATA_WIDTH +: DATA_WIDTH];
+            end
+            else begin : lane_delayed
+                reg [DATA_WIDTH-1:0] delay_chain [0:DELAY-1];
+                integer i;
+
+                always @(posedge clock or posedge reset) begin
+                    if (reset) begin
+                        for (i = 0; i < DELAY; i = i + 1) begin
+                            delay_chain[i] <= {DATA_WIDTH{1'b0}};
+                        end
+                    end else begin
+                        delay_chain[0] <= vector_in[r*DATA_WIDTH +: DATA_WIDTH];
+                        for (i = 1; i < DELAY; i = i + 1) begin
+                            delay_chain[i] <= delay_chain[i-1];
+                        end
+                    end
+                end
+
+                assign vector_out[r*DATA_WIDTH +: DATA_WIDTH] = delay_chain[DELAY-1];
+            end
+
+        end
+    endgenerate
+
+    generate
+        if (NUM_LANES <= 1) begin : no_deskew_needed
+            assign valid_out = valid_in;
+        end
+        else begin : valid_delay
+            reg [NUM_LANES-2:0] valid_chain;
+            integer vi;
+
+            always @(posedge clock or posedge reset) begin
+                if (reset) begin
+                    valid_chain <= {(NUM_LANES-1){1'b0}};
+                end else begin
+                    valid_chain[0] <= valid_in;
+                    for (vi = 1; vi < NUM_LANES-1; vi = vi + 1) begin
+                        valid_chain[vi] <= valid_chain[vi-1];
+                    end
+                end
+            end
+
+            assign valid_out = valid_chain[NUM_LANES-2];
+        end
+    endgenerate
+
+endmodule 
+
+
+
 // =====================================================================
 // SECTION 2: Interfaces 
 // =====================================================================
@@ -173,7 +246,21 @@ interface mac_if #(
 endinterface    //Use Modports maybe?
 
 
-interface accumulator_if
+
+interface deskew_if #(
+    parameter int NUM_LANES = 8,
+    parameter int DATA_WIDTH = 32
+)(
+    input bit clock
+);
+    logic reset;
+
+    logic valid_in;
+    logic [(NUM_LANES*DATA_WIDTH)-1:0] vector_in;
+
+    logic valid_out;
+    logic [(NUM_LANES*DATA_WIDTH)-1:0] vector_out;
+endinterface
 
 
 
@@ -322,6 +409,62 @@ endclass
 
 
 
+class base_env #(
+    type AGENT,
+    type SCOREBOARD
+) extends uvm_env;
+
+    AGENT agent_in_env;
+    SCOREBOARD scoreboard_in_env;
+
+    function new (string name, uvm_component parent);
+        super.new(name, parent);
+    endfunction
+
+    virtual function void build_phase (uvm_phase phase);
+        super.build_phase(phase);
+
+        agent_in_env = new("agent_in_env", this);
+        scoreboard_in_env = SCOREBOARD::type_id::create("scoreboard_in_env", this);
+    endfunction
+
+    virtual function void connect_phase (uvm_phase phase);
+        super.connect_phase(phase);
+
+        agent_in_env.monitor_in_agent.monitor_analysis_port.connect(scoreboard_in_env.scoreboard_analysis_imp);
+    endfunction
+endclass
+
+
+
+class base_test #(
+    type ENV,
+    type SEQUENCE
+) extends uvm_test;
+
+    ENV env_in_test;
+    
+    function new (string name, uvm_component parent);
+        super.new(name, parent);
+    endfunction
+
+    virtual function void build_phase (uvm_phase phase);    
+        super.build_phase(phase);
+
+        env_in_test = ENV::type_id::create("env_in_test", this);
+    endfunction
+
+    virtual task run_phase (uvm_phase phase);
+        SEQUENCE seq = SEQUENCE::type_id::create("seq");
+
+        phase.raise_objection(this);
+        seq.start(env_in_test.agent_in_env.sequencer_in_agent);
+        phase.drop_objection(this);
+    endtask
+endclass
+
+
+
 // =====================================================================
 // SECTION 4: Module-specific classes (everything base_pkg couldn't know)
 // =====================================================================
@@ -372,6 +515,34 @@ class mac_txn #(
 endclass
 
 
+
+class deskew_txn #(
+    parameter int NUM_LANES = 8,
+    parameter int DATA_WIDTH = 32
+) extends uvm_sequence_item;
+    logic reset; 
+
+    logic valid_in;
+    rand logic [(NUM_LANES*DATA_WIDTH)-1:0] vector_in;
+
+    logic valid_out;
+    logic [(NUM_LANES*DATA_WIDTH)-1:0] vector_out;
+
+    `uvm_object_param_utils_begin(deskew_txn #(NUM_LANES, DATA_WIDTH))
+        `uvm_field_int(reset, UVM_ALL_ON)
+        `uvm_field_int(valid_in, UVM_ALL_ON)
+        `uvm_field_int(vector_in, UVM_ALL_ON)
+        `uvm_field_int(valid_out, UVM_ALL_ON)
+        `uvm_field_int(vector_out, UVM_ALL_ON)
+    `uvm_object_utils_end
+
+    function new (string name = "deskew_txn");
+        super.new(name);
+    endfunction
+endclass
+
+
+
 class mac_driver #(
     parameter int WA_BITS = 8, // Width of Activation and Weight
     parameter int SC_BITS = 32 // Width of Sum and Carry
@@ -410,6 +581,39 @@ class mac_driver #(
         mac_vif.enableC <= txn.enableC;
     endtask
 endclass
+
+
+
+class deskew_driver #(
+    parameter int NUM_LANES = 8,
+    parameter int DATA_WIDTH = 32
+) extends base_driver #(
+    deskew_txn #(NUM_LANES, DATA_WIDTH)
+); 
+    `uvm_component_param_utils(deskew_driver #(NUM_LANES, DATA_WIDTH))
+
+    virtual deskew_if #(NUM_LANES, DATA_WIDTH) deskew_vif;
+
+    function new (string name, uvm_component parent);
+        super.new(name, parent);
+    endfunction 
+
+    virtual function void build_phase (uvm_phase phase);
+        super.build_phase(phase);
+
+        if(!uvm_config_db #(virtual deskew_if #(NUM_LANES, DATA_WIDTH))::get(this, "", "deskew_vif", deskew_vif))
+            `uvm_fatal(get_type_name(), "Virtual Interface not found!")
+    endfunction 
+
+    virtual task drive_item (deskew_txn #(NUM_LANES, DATA_WIDTH) txn);
+        @(posedge deskew_vif.clock);
+
+        deskew_vif.reset <= txn.reset;
+        deskew_vif.valid_in <= txn.valid_in;
+        deskew_vif.vector_in <= txn.vector_in;
+    endtask
+endclass
+
 
 
 class mac_monitor #(
@@ -473,11 +677,75 @@ class mac_monitor #(
 
         txn_pipeline.push_back(sample_txn);
 
-        if (txn == null) begin
+        if (txn == null) begin  //Uses the Recursive Stalling method to stall the sending of packets until txn!=null
             sample_item(txn);
         end
     endtask
 endclass
+
+
+
+class deskew_monitor #(
+    parameter int NUM_LANES = 8,
+    parameter int DATA_WIDTH =32
+) extends base_monitor #(
+    deskew_txn #(NUM_LANES, DATA_WIDTH)
+);
+    `uvm_component_param_utils(deskew_monitor #(NUM_LANES, DATA_WIDTH))
+
+    virtual deskew_if #(NUM_LANES, DATA_WIDTH) deskew_vif;
+
+    deskew_txn #(NUM_LANES, DATA_WIDTH) txn_pipeline [$];
+
+    localparam int PIPE_DEPTH = (NUM_LANES>1) ? NUM_LANES-1 : 0;
+
+    function new (string name, uvm_component parent);
+        super.new(name, parent);
+    endfunction 
+
+    virtual function void build_phase (uvm_phase phase);
+        super.build_phase(phase);
+
+        if(!uvm_config_db #(virtual deskew_if #(NUM_LANES, DATA_WIDTH))::get(this, "", "deskew_vif", deskew_vif))
+            `uvm_fatal(get_type_name(), "Virtual Interface not found!")
+    endfunction
+
+    //Non recursive stalling with run_phase override
+    virtual task sample_item (output deskew_txn #(NUM_LANES, DATA_WIDTH) txn);
+        deskew_txn #(NUM_LANES, DATA_WIDTH) sample_txn;
+
+        @(posedge deskew_vif.clock);
+        sample_txn = deskew_txn #(NUM_LANES, DATA_WIDTH)::type_id::create("sample_txn");
+
+        sample_txn.reset = deskew_vif.reset;
+        sample_txn.valid_in = deskew_vif.valid_in;
+        sample_txn.vector_in = deskew_vif.vector_in;
+
+        txn_pipeline.push_back(sample_txn);
+
+        if (txn_pipeline.size() > PIPE_DEPTH) begin
+            txn = txn_pipeline.pop_front();
+
+            txn.valid_out = deskew_vif.valid_out;
+            txn.vector_out = deskew_vif.vector_out;
+        end else begin
+            txn = null;
+        end
+    endtask
+
+    virtual task run_phase (uvm_phase phase);
+        deskew_txn #(NUM_LANES, DATA_WIDTH) txn;
+
+        forever begin
+            sample_item(txn);
+
+            if (txn != null) begin
+                monitor_analysis_port.write(txn);
+            end
+        end
+    endtask
+endclass
+
 
 
 class mac_coverage #(
@@ -541,6 +809,121 @@ class mac_coverage #(
         mac_cg.sample(req.weight, req.activation, req.enableW, req.enableA);
     endfunction
 endclass
+
+
+
+class deskew_coverage #(
+    parameter int NUM_LANES  = 8,
+    parameter int DATA_WIDTH = 32
+) extends base_coverage #(
+    deskew_txn #(NUM_LANES, DATA_WIDTH)
+);
+    `uvm_component_param_utils(deskew_coverage #(NUM_LANES, DATA_WIDTH))
+
+    // Decoupled covergroup with explicit sampling signature
+    covergroup deskew_cg with function sample(
+        logic                            valid_in,
+        logic                            valid_out,
+        logic signed [DATA_WIDTH-1:0]    lane0_in,
+        logic signed [DATA_WIDTH-1:0]    lanelast_in,
+        logic signed [DATA_WIDTH-1:0]    lane0_out,
+        logic signed [DATA_WIDTH-1:0]    lanelast_out
+    );
+        // -------------------------------------------------------------
+        // 1. Control Signal Transitions & Streaming Bursts
+        // -------------------------------------------------------------
+        cp_valid_in: coverpoint valid_in {
+            bins deasserted      = { 1'b0 };
+            bins asserted        = { 1'b1 };
+            bins idle_to_pulse   = (1'b0 => 1'b1); // Single pulse or burst start
+            bins burst_streaming = (1'b1 => 1'b1); // Multi-cycle batch stream
+            bins pulse_to_idle   = (1'b1 => 1'b0); // Burst drain
+        }
+
+        cp_valid_out: coverpoint valid_out {
+            bins deasserted      = { 1'b0 };
+            bins asserted        = { 1'b1 };
+            bins idle_to_aligned = (1'b0 => 1'b1); // First aligned wave ready
+            bins burst_aligned   = (1'b1 => 1'b1); // Sustained aligned throughput
+            bins aligned_to_idle = (1'b1 => 1'b0); // Alignment drain complete
+        }
+
+        // -------------------------------------------------------------
+        // 2. Deskew Pipeline Lifecycle Cross Coverage
+        // -------------------------------------------------------------
+        cross_pipeline_lifecycle: cross cp_valid_in, cp_valid_out {
+            // Pipeline empty / between matrix batches
+            bins idle_state    = binsof(cp_valid_in.deasserted) && binsof(cp_valid_out.deasserted);
+
+            // Filling: array has begun outputting, but Lane 0 hasn't reached the end
+            bins priming_phase = binsof(cp_valid_in.asserted)   && binsof(cp_valid_out.deasserted);
+
+            // Full throughput: incoming skewed wave in parallel with outgoing aligned wave
+            bins steady_state  = binsof(cp_valid_in.asserted)   && binsof(cp_valid_out.asserted);
+
+            // Draining: array finished outputting, deskew buffer flushing remaining lanes
+            bins draining_tail = binsof(cp_valid_in.deasserted) && binsof(cp_valid_out.asserted);
+        }
+
+        // -------------------------------------------------------------
+        // 3. Lane 0 Data Coverage (Longest Delay Path: N-1 Stages)
+        // -------------------------------------------------------------
+        cp_lane0_in: coverpoint lane0_in iff (valid_in) {
+            bins zero        = { {DATA_WIDTH{1'b0}} };
+            bins max_pos     = { {1'b0, {(DATA_WIDTH-1){1'b1}}} }; // e.g., 32'h7FFF_FFFF
+            bins min_neg     = { {1'b1, {(DATA_WIDTH-1){1'b0}}} }; // e.g., 32'h8000_0000
+            bins pos_values  = { [1 : {1'b0, {(DATA_WIDTH-1){1'b1}}} - 1] };
+            bins neg_values  = { [{1'b1, {(DATA_WIDTH-1){1'b0}}} + 1 : -1] };
+        }
+
+        cp_lane0_out: coverpoint lane0_out iff (valid_out) {
+            bins zero        = { {DATA_WIDTH{1'b0}} };
+            bins max_pos     = { {1'b0, {(DATA_WIDTH-1){1'b1}}} };
+            bins min_neg     = { {1'b1, {(DATA_WIDTH-1){1'b0}}} };
+            bins pos_values  = { [1 : {1'b0, {(DATA_WIDTH-1){1'b1}}} - 1] };
+            bins neg_values  = { [{1'b1, {(DATA_WIDTH-1){1'b0}}} + 1 : -1] };
+        }
+
+        // -------------------------------------------------------------
+        // 4. Lane N-1 Data Coverage (Passthrough Path: 0 Stages)
+        // -------------------------------------------------------------
+        cp_lanelast_out: coverpoint lanelast_out iff (valid_out) {
+            bins zero        = { {DATA_WIDTH{1'b0}} };
+            bins max_pos     = { {1'b0, {(DATA_WIDTH-1){1'b1}}} };
+            bins min_neg     = { {1'b1, {(DATA_WIDTH-1){1'b0}}} };
+            bins pos_values  = { [1 : {1'b0, {(DATA_WIDTH-1){1'b1}}} - 1] };
+            bins neg_values  = { [{1'b1, {(DATA_WIDTH-1){1'b0}}} + 1 : -1] };
+        }
+    endgroup
+
+    function new(string name, uvm_component parent);
+        super.new(name, parent);
+        deskew_cg = new();
+    endfunction
+
+    // Implement pure virtual hook from base_coverage
+    virtual function void sample_coverage(deskew_txn #(NUM_LANES, DATA_WIDTH) req);
+        logic signed [DATA_WIDTH-1:0] l0_in, lN_in;
+        logic signed [DATA_WIDTH-1:0] l0_out, lN_out;
+
+        // Slice boundary lanes from the flat vectors
+        l0_in  = req.vector_in[0 +: DATA_WIDTH];
+        lN_in  = req.vector_in[(NUM_LANES-1)*DATA_WIDTH +: DATA_WIDTH];
+
+        l0_out = req.vector_out[0 +: DATA_WIDTH];
+        lN_out = req.vector_out[(NUM_LANES-1)*DATA_WIDTH +: DATA_WIDTH];
+
+        deskew_cg.sample(
+            req.valid_in,
+            req.valid_out,
+            l0_in,
+            lN_in,
+            l0_out,
+            lN_out
+        );
+    endfunction
+endclass
+
 
 
 class mac_scoreboard #(
@@ -641,6 +1024,115 @@ class mac_scoreboard #(
 endclass
 
 
+
+class deskew_scoreboard #(
+    parameter int NUM_LANES  = 8,
+    parameter int DATA_WIDTH = 32
+) extends base_scoreboard #(
+    deskew_txn #(NUM_LANES, DATA_WIDTH)
+);
+    `uvm_component_param_utils(deskew_scoreboard #(NUM_LANES, DATA_WIDTH))
+
+    // Per-lane queues to store captured vector_out until the matching vector_in arrives
+    logic [DATA_WIDTH-1:0] out_data_queue  [NUM_LANES][$];
+    logic                  out_valid_queue [NUM_LANES][$];
+
+    function new (string name, uvm_component parent);
+        super.new(name, parent);
+    endfunction 
+
+    virtual function void build_phase(uvm_phase phase);
+        super.build_phase(phase);
+    endfunction
+
+    virtual function void check(deskew_txn #(NUM_LANES, DATA_WIDTH) txn);
+        // =============================================================
+        // 1. Reset Handling & Verification
+        // =============================================================
+        if (txn.reset) begin
+            // Clear all reference queues so pre-reset data does not cause false mismatches
+            for (int r = 0; r < NUM_LANES; r++) begin
+                out_data_queue[r].delete();
+                out_valid_queue[r].delete();
+            end
+
+            // Rule 1: valid_out MUST be de-asserted during reset
+            if (txn.valid_out !== 1'b0) begin
+                `uvm_error(get_type_name(), $sformatf(
+                    "RESET FAULT: valid_out is %b during reset, expected 0", 
+                    txn.valid_out
+                ))
+            end
+
+            // Rule 2: Registered lanes (r < NUM_LANES - 1) must be cleared to 0
+            for (int r = 0; r < NUM_LANES - 1; r++) begin
+                logic [DATA_WIDTH-1:0] act_lane;
+                act_lane = txn.vector_out[r*DATA_WIDTH +: DATA_WIDTH];
+                if (act_lane !== '0) begin
+                    `uvm_error(get_type_name(), $sformatf(
+                        "RESET FAULT: Lane %0d output is 0x%08h during reset, expected 0", 
+                        r, act_lane
+                    ))
+                end
+            end
+
+            // Skip data checking for reset cycles
+            return;
+        end
+
+        // =============================================================
+        // 2. Control Signal Check (1:1 Alignment)
+        // =============================================================
+        // Since the monitor buffered valid_in by (NUM_LANES - 1) cycles,
+        // valid_out in this transaction must directly equal valid_in.
+        if (txn.valid_out !== txn.valid_in) begin
+            `uvm_error(get_type_name(), $sformatf(
+                "VALID MISMATCH: [Expected %b (from valid_in)] | [Found %b]", 
+                txn.valid_in, txn.valid_out
+            ))
+        end
+
+        // =============================================================
+        // 3. Lane-by-Lane Data Alignment Check
+        // =============================================================
+        for (int r = 0; r < NUM_LANES; r++) begin
+            logic [DATA_WIDTH-1:0] cur_out_lane, cur_in_lane;
+            cur_out_lane = txn.vector_out[r*DATA_WIDTH +: DATA_WIDTH];
+            cur_in_lane  = txn.vector_in[r*DATA_WIDTH +: DATA_WIDTH];
+
+            // Push the current transaction's output into the lane queue
+            out_data_queue[r].push_back(cur_out_lane);
+            out_valid_queue[r].push_back(txn.valid_out);
+
+            // Lane r output was generated r transactions before the matching vector_in arrives.
+            // Pop and compare only after r transactions have elapsed:
+            if (out_data_queue[r].size() > r) begin
+                logic [DATA_WIDTH-1:0] exp_lane;
+                logic                  exp_valid;
+
+                exp_lane  = out_data_queue[r].pop_front();
+                exp_valid = out_valid_queue[r].pop_front();
+
+                // Only check data integrity on cycles where the wavefront was valid
+                if (exp_valid) begin
+                    if (exp_lane !== cur_in_lane) begin
+                        `uvm_error(get_type_name(), $sformatf(
+                            "DATA MISMATCH [LANE %0d]: [Expected 0x%08h] | [Found 0x%08h]", 
+                            r, cur_in_lane, exp_lane
+                        ))
+                    end else begin
+                        `uvm_info(get_type_name(), $sformatf(
+                            "Lane %0d Matched: 0x%08h", r, exp_lane
+                        ), UVM_LOW)
+                    end
+                end
+            end
+        end
+    endfunction
+endclass
+
+
+
 class mac_sequence #(
     parameter int WA_BITS = 8, // Width of Activation and Weight
     parameter int SC_BITS = 32 // Width of Sum and Carry
@@ -715,63 +1207,131 @@ endclass
 
 
 
-// =====================================================================
-// SECTION 5: Unifeid evnironment & test instances.
-// The unified_env will instantiate module specific agents and scoreboards,
-// and connect them together.
-// ===================================================================
+class deskew_sequence #(
+    parameter int NUM_LANES = 8,
+    parameter int DATA_WIDTH = 32
+) extends uvm_sequence #(
+    deskew_txn #(NUM_LANES, DATA_WIDTH)
+);
+    `uvm_object_param_utils(deskew_sequence #(NUM_LANES, DATA_WIDTH))
+
+    function new (string name = "deskew_sequence");
+        super.new(name);
+    endfunction
+
+    virtual task body();
+        `uvm_info(get_type_name(), "Resetting System!", UVM_LOW)
+        repeat(2) begin
+            req = deskew_txn #(NUM_LANES, DATA_WIDTH)::type_id::create("req");
+            start_item(req);
+
+            req.reset = 1'b1;
+            req.valid_in = 1'b0;
+
+            assert(req.randomize());
+            finish_item(req);
+        end
+
+        `uvm_info(get_type_name(), "Draining the Deskew Buffers", UVM_LOW)
+        repeat(NUM_LANES) begin 
+            req = deskew_txn #(NUM_LANES, DATA_WIDTH)::type_id::create("req");
+            start_item(req);
+
+            req.reset = 1'b0;
+            req.valid_in = 1'b1;
+
+            assert(req.randomize());
+            finish_item(req);
+        end
+
+        `uvm_info(get_type_name(), "Stable Flow with all the buffers filled", UVM_LOW)
+        repeat(200) begin 
+            req = deskew_txn #(NUM_LANES, DATA_WIDTH)::type_id::create("req");
+            start_item(req);
+
+            req.reset = 1'b0;
+            req.valid_in = 1'b1;
+
+            assert(req.randomize());
+            finish_item(req);
+        end
+
+        `uvm_info(get_type_name(), "Freeing up the buffers", UVM_LOW)
+        repeat(NUM_LANES+4) begin 
+            req = deskew_txn #(NUM_LANES, DATA_WIDTH)::type_id::create("req");
+            start_item(req);
+
+            req.reset = 1'b0;
+            req.valid_in = 1'b0;
+
+            assert(req.randomize());
+            finish_item(req);
+        end
+    endtask
+endclass
 
 
 
-class unified_env #(
-    parameter int WA_BITS = 8, // Width of Activation and Weight
-    parameter int SC_BITS = 32 // Width of Sum and Carry
-) extends uvm_env;
-    `uvm_component_param_utils(unified_env #(WA_BITS, SC_BITS))
-
-    base_agent #(mac_driver #(WA_BITS, SC_BITS), mac_monitor #(WA_BITS, SC_BITS), mac_coverage #(WA_BITS, SC_BITS), base_sequencer #(mac_txn #(WA_BITS, SC_BITS))) mac_agent;
-    mac_scoreboard #(WA_BITS, SC_BITS) mac_scb;
+class mac_env #(
+    parameter int WA_WIDTH = 8,
+    parameter int SC_WIDTH = 32
+) extends base_env #(
+    base_agent #(mac_driver #(WA_WIDTH, SC_WIDTH),
+    mac_monitor #(WA_WIDTH, SC_WIDTH),
+    mac_coverage #(WA_WIDTH, SC_WIDTH),
+    base_sequencer #(mac_txn #(WA_WIDTH, SC_WIDTH))),
+    mac_scoreboard #(WA_WIDTH, SC_WIDTH)
+);
+    `uvm_component_param_utils(mac_env #(WA_WIDTH, SC_WIDTH))
 
     function new (string name, uvm_component parent);
         super.new(name, parent);
-    endfunction
-
-    virtual function void build_phase (uvm_phase phase);
-        super.build_phase(phase);
-
-        mac_agent = new("mac_agent", this);
-        mac_scb = mac_scoreboard #(WA_BITS, SC_BITS)::type_id::create("mac_scb", this);
-    endfunction
-
-    virtual function void connect_phase (uvm_phase phase);
-        super.connect_phase(phase);
-
-        mac_agent.monitor_in_agent.monitor_analysis_port.connect(mac_scb.scoreboard_analysis_imp);
     endfunction
 endclass
 
 
-class unified_test extends uvm_test;
-    `uvm_component_utils(unified_test)
 
-    unified_env #(8, 32) env;
+class deskew_env #(
+    parameter int NUM_LANES = 8,
+    parameter int DATA_WIDTH = 32
+) extends base_env #(
+    base_agent #(deskew_driver #(NUM_LANES, DATA_WIDTH),
+    deskew_monitor #(NUM_LANES, DATA_WIDTH),
+    deskew_coverage #(NUM_LANES, DATA_WIDTH),
+    base_sequencer #(deskew_txn #(NUM_LANES, DATA_WIDTH))),
+    deskew_scoreboard #(NUM_LANES, DATA_WIDTH)
+);
+    `uvm_component_param_utils(deskew_env #(NUM_LANES, DATA_WIDTH))
 
     function new (string name, uvm_component parent);
         super.new(name, parent);
     endfunction
+endclass
 
-    virtual function void build_phase (uvm_phase phase);
-        super.build_phase(phase);
 
-        env = unified_env #(8, 32)::type_id::create("env", this);
+
+class mac_test extends base_test #(
+    mac_env,
+    mac_sequence #(8,32)
+);
+    `uvm_component_utils(mac_test)
+
+    function new (string name, uvm_component parent);
+        super.new(name, parent);
     endfunction
+endclass
 
-    virtual task run_phase (uvm_phase phase);
-        mac_sequence #(8, 32) mac_seq = mac_sequence #(8, 32)::type_id::create("mac_seq");
-        phase.raise_objection(this);
-        mac_seq.start(env.mac_agent.sequencer_in_agent);   
-        phase.drop_objection(this);
-    endtask
+
+
+class deskew_test extends base_test #(
+    deskew_env,
+    deskew_sequence #(8, 32)
+);
+    `uvm_component_utils(deskew_test)
+
+    function new (string name, uvm_component parent);
+        super.new(name, parent);
+    endfunction
 endclass
 
 
@@ -782,7 +1342,9 @@ endclass
 
 module UVM_TPU #(
     parameter int WA_BITS = 8, // Width of Activation and Weight
-    parameter int SC_BITS = 32 // Width of Sum and Carry
+    parameter int SC_BITS = 32, // Width of Sum and Carry
+    parameter int NUM_LANES = 8, //Lanese in Deskew Buffer
+    parameter int DATA_WIDTH = 32 //Data Width in the Deskew Buffer
 );
     
     bit clock;
@@ -790,6 +1352,10 @@ module UVM_TPU #(
     always #5 clock = ~clock;
 
     mac_if #(WA_BITS, SC_BITS) mif(
+        .clock(clock)
+    );
+
+    deskew_if #(NUM_LANES, DATA_WIDTH) dif(
         .clock(clock)
     );
 
@@ -819,10 +1385,23 @@ module UVM_TPU #(
         .activation_pass(mif.activation_pass)
     );
 
+    deskew_buffer DUT_DESKEWBUFFER (
+        .clock(clock),
+
+        .reset(dif.reset),
+
+        .valid_in(dif.valid_in),
+        .vector_in(dif.vector_in),
+
+        .valid_out(dif.valid_out),
+        .vector_out(dif.vector_out)
+    );
+
     initial begin
         uvm_config_db #(virtual mac_if #(WA_BITS, SC_BITS))::set(null, "*", "mac_vif", mif);
+        //uvm_config_db #(virtual deskew_if #(NUM_LANES, DATA_WIDTH))::set(null, "*", "deskew_vif", dif);
 
-        run_test("unified_test");
+        run_test("mac_test");
     end
 
     initial begin
@@ -830,3 +1409,43 @@ module UVM_TPU #(
         $dumpvars(0, UVM_TPU);
     end
 endmodule
+
+/*
+virtual task sample_item(output deskew_txn #(NUM_LANES, DATA_WIDTH) txn);
+    localparam int PIPE_DEPTH = (NUM_LANES > 1) ? (NUM_LANES - 1) : 0;
+    deskew_txn #(NUM_LANES, DATA_WIDTH) sample_txn;
+
+    @(posedge deskew_vif.clock);
+
+    // 1. Check if the pipeline has reached the target deskew latency
+    if (PIPE_DEPTH == 0) begin
+        // Corner case: N=1 (zero cycle latency)
+        txn = deskew_txn #(NUM_LANES, DATA_WIDTH)::type_id::create("txn");
+        txn.valid_in   = deskew_vif.valid_in;
+        txn.vector_in  = deskew_vif.vector_in;
+        txn.valid_out  = deskew_vif.valid_out;
+        txn.vector_out = deskew_vif.vector_out;
+    end else begin
+        if (txn_pipeline.size() >= PIPE_DEPTH) begin
+            // Pop the transaction entered (NUM_LANES - 1) cycles ago
+            txn = txn_pipeline.pop_front();
+            txn.valid_out  = deskew_vif.valid_out;
+            txn.vector_out = deskew_vif.vector_out;
+        end else begin
+            txn = null;
+        end
+
+        // 2. Capture current input stimuli
+        sample_txn = deskew_txn #(NUM_LANES, DATA_WIDTH)::type_id::create("sample_txn");
+        sample_txn.valid_in  = deskew_vif.valid_in;
+        sample_txn.vector_in = deskew_vif.vector_in;
+
+        txn_pipeline.push_back(sample_txn);
+
+        // 3. Self-prime the pipeline: recurse until the queue fills to PIPE_DEPTH
+        if (txn == null) begin
+            sample_item(txn);
+        end
+    end
+endtask
+*/

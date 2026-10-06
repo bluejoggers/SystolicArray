@@ -1,48 +1,50 @@
 /*
-Accumulator.v
+Accumulator.v (pure Verilog)
 
-This module sits directly below the MXU and implements the Accumulator block
-from the TPU v1 architecture diagram.
+SIMPLIFIED ARCHITECTURE (replaces the previous mode[1:0] / dual-tiling-
+read / direct_write_data design): per column, just ONE 2:1 MUX and ONE
+adder.
 
-Each of the 8 columns of the systolic array produces TWO 32-bit numbers every
-cycle -- a sum vector and a carry vector -- which are the two outputs of the
-final 3:2 carry-save compression stage inside each PE's CSA. These have NOT
-yet been resolved into a single number; the carry vector still needs to be
-added to the sum vector to get the true accumulated value for that column.
+    read_data (from this column's SRAM bank) ---\
+                                                   MUX ---- adder_a --\
+                              0 (ground) --------/                    +---- resolved_out ---- mem[write_address]
+                                                                      /
+    mxu_out (already-resolved value from the array) ---- adder_b ---/
 
-This module does exactly that resolution, using one 32-bit adder per column
-(8 adders total, arranged in parallel at the top of the block), and then
-writes the resolved 32-bit result into an SRAM bank dedicated to that column.
+  accumulate = 0  (plain write-through / store)
+    MUX selects 0. adder_out = mxu_out + 0 = mxu_out.
+    -> Used to commit a freshly computed value straight into SRAM.
 
-Storage: 8 KiB total, split evenly across the 8 columns.
+  accumulate = 1  (reduction)
+    MUX selects read_data (a previously stored partial sum, Partial_Sum_1).
+    adder_out = read_data + mxu_out (Partial_Sum_2, this cycle's array
+    output). -> Used to accumulate a new contribution on top of what
+    was already stored, then write the combined result back.
+
+CRITICAL TIMING NOTE -- read this before wiring this module up:
+
+  The SRAM read is REGISTERED (synchronous), matching every other
+  memory in this project -- read_data at cycle T reflects the address
+  you presented at cycle T-1, NOT the current cycle. For a true
+  "read old value at X, add this cycle's mxu_out, write result back
+  to X" accumulate, the controller driving this module MUST present
+  read_address = X one cycle BEFORE presenting write_address = X
+  (with accumulate = 1 and write_enable = 1 on that later cycle).
+  Getting this address sequencing wrong will silently combine
+  mxu_out with the WRONG address's stored value instead of failing
+  loudly -- there is no protection against this inside the module
+  itself, by design, to keep it a simple, flexible building block
+  rather than baking in a fixed read-then-write pipeline the caller
+  might not want.
+
+The pre-existing "drain to Activation Unit" read port (act_read_enable
+/ act_read_address / act_data_out) is UNCHANGED and independent of all
+of the above -- it was not part of this request, so it stays exactly
+as it was.
+
+Storage: 8 KiB total, split evenly across the 8 columns (unchanged).
   8 KiB = 65536 bits = 2048 words of 32 bits
   2048 words / 8 columns = 256 words per column -> DEPTH = 256, ADDR_WIDTH = 8
-
-Dataflow direction (this is fixed, not a side effect of how enables are
-driven by some external controller):
-
-    MXU (8 cols of sum/carry) --[write]--> SRAM --[read]--> Activation Unit
-
-  - WRITE side: every cycle, the MXU's 8 columns of fresh sum/carry results
-    are resolved by the 8 parallel adders and written into their respective
-    column's SRAM bank. This is the "filling up" direction.
-
-  - READ side: every cycle, the accumulator also reads out 8 words (one per
-    column) toward the next block (Activation Unit). This is the "draining
-    out" direction.
-
-  Both directions use independent per-column SRAM banks, each with its own
-  read port and write port, so all 8 columns can read AND write in the SAME
-  clock cycle -- this is required because the systolic array produces (and
-  the activation unit consumes) one full row of 8 column results every
-  cycle in steady-state operation.
-
-  Read/write collision behaviour: if a write and a read target the SAME
-  address in the SAME column on the SAME cycle, this is a standard
-  synchronous single-port-per-bank SRAM -- the read returns the OLD value
-  (the value before this cycle's write takes effect), not the freshly
-  written one. This is normal SRAM macro behaviour (old-data-on-collision)
-  and was verified in simulation before finalizing this RTL.
 */
 
 module accumulator #(
@@ -52,80 +54,76 @@ module accumulator #(
     input wire clock,
     input wire reset,
 
-    // ---- WRITE SIDE: sourced from the MXU, every cycle ----
-    input wire [INPUT_WIDTH*32-1:0] mxu_sum_in,    // Concatenated sum outputs from the MXU column CSA trees
-    input wire [INPUT_WIDTH*32-1:0] mxu_carry_in,  // Concatenated carry outputs from the MXU column CSA trees
-    input wire mxu_write_enable,                                       // Gates the write side only
-    input wire [(INPUT_WIDTH*$clog2(DEPTH))-1:0] mxu_write_address,     // One write address per column
+    // ---- MXU side: one already-resolved value per column, every cycle ----
+    input wire [INPUT_WIDTH*32-1:0] mxu_out,
 
-    // ---- READ SIDE: sunk to the next block (Activation Unit), every cycle ----
-    input wire act_read_enable,                                        // Gates the read side only
+    // ---- Reduction MUX control + its SRAM read port ----
+    input wire accumulate,                                              // 0 = write-through (MUX=0), 1 = reduction (MUX=read_data). Shared across all columns.
+    input wire read_enable,
+    input wire [(INPUT_WIDTH*$clog2(DEPTH))-1:0] read_address,          // One read address per column, feeds the reduction MUX
+
+    // ---- Shared write port: commits the (muxed) adder's result ----
+    input wire write_enable,
+    input wire [(INPUT_WIDTH*$clog2(DEPTH))-1:0] write_address,         // One write address per column
+
+    // ---- Pre-existing, unrelated drain path: sunk to the Activation Unit, every cycle ----
+    input wire act_read_enable,
     input wire [(INPUT_WIDTH*$clog2(DEPTH))-1:0] act_read_address,      // One read address per column
     output reg  [INPUT_WIDTH*32-1:0] act_data_out                       // Concatenated 32-bit words, one per column, toward Activation Unit
 );
 
     localparam ADDR_WIDTH = $clog2(DEPTH);
 
-    // -------------------------------------------------------------
-    // Stage 1: 8 parallel 32-bit adders resolving each column's CSA
-    //          sum/carry pair into a single 32-bit accumulated value.
-    //          This is the carry-save -> binary resolution step, and
-    //          it happens combinationally every cycle on whatever the
-    //          MXU currently presents -- it is the WRITE-side source.
-    // -------------------------------------------------------------
-    wire [INPUT_WIDTH*32-1:0] resolved_sum;
-
     genvar col;
     generate
-        for (col = 0; col < INPUT_WIDTH; col = col + 1) begin : col_adders
-            assign resolved_sum[col*32 +: 32] =
-                mxu_sum_in[col*32 +: 32] + mxu_carry_in[col*32 +: 32];
-        end
-    endgenerate
+        for (col = 0; col < INPUT_WIDTH; col = col + 1) begin : cols
 
-    // -------------------------------------------------------------
-    // Stage 2: 8 independent SRAM banks, one per column, each
-    //          DEPTH x 32 bits = 256 x 32b = 1 KiB -> 8 KiB total.
-    //
-    //          Each bank has its OWN read port and OWN write port,
-    //          so write (from MXU) and read (to Activation Unit) can
-    //          both happen on the SAME clock edge, for ALL 8 columns
-    //          simultaneously -- this is what makes "8 words written
-    //          and 8 words read in the same cycle" possible: it is 8
-    //          independent single-port-write/single-port-read banks,
-    //          not one shared memory with one address per cycle.
-    // -------------------------------------------------------------
-    generate
-        for (col = 0; col < INPUT_WIDTH; col = col + 1) begin : sram_banks
-
+            // -----------------------------------------------------------
             // Per-column address slices
-            wire [ADDR_WIDTH-1:0] wr_addr = mxu_write_address[col*ADDR_WIDTH +: ADDR_WIDTH];
-            wire [ADDR_WIDTH-1:0] rd_addr = act_read_address [col*ADDR_WIDTH +: ADDR_WIDTH];
+            // -----------------------------------------------------------
+            wire [ADDR_WIDTH-1:0] wr_addr     = write_address    [col*ADDR_WIDTH +: ADDR_WIDTH];
+            wire [ADDR_WIDTH-1:0] rd_addr     = read_address     [col*ADDR_WIDTH +: ADDR_WIDTH];
+            wire [ADDR_WIDTH-1:0] act_rd_addr = act_read_address [col*ADDR_WIDTH +: ADDR_WIDTH];
 
-            // The memory array for this column: 256 words x 32 bits = 1 KiB
+            // The memory array for this column: 256 words x 32 bits = 1 KiB.
+            // 1 write port + 1 reduction read port + 1 drain read port,
+            // all live in the same cycle -- see the physical-
+            // implementation note at the bottom of this file re: SRAM
+            // macro port counts.
             reg [31:0] mem [0:DEPTH-1];
+
+            // Registered (synchronous) reduction read-port output
+            reg [31:0] read_data;
+
+            // -----------------------------------------------------------
+            // The single 2:1 MUX + adder for this column.
+            // -----------------------------------------------------------
+            wire [31:0] adder_a = accumulate ? read_data : 32'd0;
+            wire [31:0] adder_b = mxu_out[col*32 +: 32];
+            wire [31:0] resolved_out = adder_a + adder_b;
 
             integer i;
 
             always @(posedge clock) begin
                 if (reset) begin
-                    // Synchronous reset clears this column's entire bank.
-                    // (On a real SRAM macro this would instead be a power-on
-                    //  state or an explicit clear pass; kept here for
-                    //  simulation correctness.)
                     for (i = 0; i < DEPTH; i = i + 1) begin
                         mem[i] <= 32'sd0;
                     end
+                    read_data <= 32'sd0;
                     act_data_out[col*32 +: 32] <= 32'sd0;
                 end else begin
-                    // READ happens first in program order so it captures the
-                    // OLD value ahead of this cycle's write -- matches the
-                    // old-data-on-collision behaviour verified in simulation.
-                    if (act_read_enable) begin
-                        act_data_out[col*32 +: 32] <= mem[rd_addr];
+                    // Both reads capture the OLD value ahead of this
+                    // cycle's write -- old-data-on-collision, matching
+                    // the rest of this project's memories.
+                    if (read_enable) begin
+                        read_data <= mem[rd_addr];
                     end
-                    if (mxu_write_enable) begin
-                        mem[wr_addr] <= resolved_sum[col*32 +: 32];
+                    if (act_read_enable) begin
+                        act_data_out[col*32 +: 32] <= mem[act_rd_addr];
+                    end
+
+                    if (write_enable) begin
+                        mem[wr_addr] <= resolved_out;
                     end
                 end
             end
@@ -134,3 +132,28 @@ module accumulator #(
     endgenerate
 
 endmodule
+
+/*
+PHYSICAL-IMPLEMENTATION NOTE: each column now needs 1 write port + 2
+read ports (the reduction read port, plus the drain-to-Activation-Unit
+port) live in the same cycle -- a real improvement over the previous
+revision's 4-port design, and a more realistic ask of an SRAM macro
+compiler (many 1W2R or 2R1W macros exist; true 1W3R+ macros are much
+rarer). Still worth confirming against whatever memory compiler you
+actually intend to target.
+
+INTERFACE NOTE tying back to the deskew buffer: since arraydatapath's
+`partial_sum` is already a single resolved value per column (its own
+bottom_adders stage combines sum+carry before this module ever sees
+it), DeskewBuffer's `vector_out` / `valid_out` map directly onto
+`mxu_out` / an enable for this module -- no separate "direct write"
+path is needed anymore, since mxu_out already IS that resolved value
+by construction:
+
+    mxu_out       <= deskew_buffer.vector_out;
+    write_enable  <= deskew_buffer.valid_out;
+    write_address <= <destination address for this pass>;
+    accumulate    <= <0 for first pass into an address, 1 for later
+                       passes reducing onto it -- see the read-before-
+                       write timing note above>;
+*/

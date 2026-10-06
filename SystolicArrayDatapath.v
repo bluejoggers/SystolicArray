@@ -104,7 +104,6 @@ module arraydatapath #(
             assign partial_sum [(idx*32)+:32] = accumulator_sum_out [(idx*32)+:32] + accumulator_carry_out [(idx*32)+:32];
         end
     endgenerate
-
 endmodule 
 
 /*

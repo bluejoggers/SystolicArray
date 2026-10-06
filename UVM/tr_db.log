@@ -15,3 +15,7 @@
   CREATE_STREAM @0 {NAME:mac_seq T:Transactions SCOPE:uvm_test_top.env.mac_agent.sequencer_in_agent STREAM:621}
   CREATE_STREAM @0 {NAME:mac_seq T:Transactions SCOPE:uvm_test_top.env.mac_agent.sequencer_in_agent STREAM:621}
   CREATE_STREAM @0 {NAME:mac_seq T:Transactions SCOPE:uvm_test_top.env.mac_agent.sequencer_in_agent STREAM:621}
+  CREATE_STREAM @0 {NAME:mac_seq T:Transactions SCOPE:uvm_test_top.env.mac_agent.sequencer_in_agent STREAM:873}
+  CREATE_STREAM @1015 {NAME:deskew_sequence T:Transactions SCOPE:uvm_test_top.env.deskew_agent.sequencer_in_agent STREAM:2348}
+  CREATE_STREAM @0 {NAME:seq T:Transactions SCOPE:uvm_test_top.env_in_test.agent_in_env.sequencer_in_agent STREAM:621}
+  CREATE_STREAM @0 {NAME:seq T:Transactions SCOPE:uvm_test_top.env_in_test.agent_in_env.sequencer_in_agent STREAM:622}
