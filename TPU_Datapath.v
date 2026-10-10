@@ -65,7 +65,6 @@ module tpu_datapath #(
     // =====================================================================
     input  wire [N-1:0]                        host_write_req,
     input  wire [(N*$clog2(UB_DEPTH))-1:0]     host_write_address,
-    input  wire [(N*WA_BITS)-1:0]               host_write_data,
     output wire [N-1:0]                         ub_write_conflict,
 
     // =====================================================================
@@ -74,6 +73,24 @@ module tpu_datapath #(
     input wire                                  ub_read_enable,
     input wire [(N*$clog2(UB_DEPTH))-1:0]      ub_read_address,
     output wire [(N*WA_BITS)-1:0]               ub_read_data,   // Registered UB read result (updates only when ub_read_enable=1, otherwise holds). Feeds the stagger block internally AND is exposed here so a WRITE_HOST sequencer can capture it for host readback. NOTE: this is ONE shared read port -- a MATMUL read and a WRITE_HOST read cannot happen in the same cycle (structural hazard for the controller to arbitrate).
+
+    // =====================================================================
+    // ACTIVATION FETCHER: Deserializes the activation stream into a 64-bit vector for the MXU
+    // =====================================================================
+    input wire [WA_BITS-1:0] activation_in,  // Unsigned activations, one per MXU column (N-wide)
+    input wire activation_valid,            // Host pulses this when activation_in is valid this cycle
+    output wire activation_ready,           // Activation Fetcher pulses this when a vector is ready to send to the MXU
+    output wire activation_valid,             // Activation Fetcher pulses this when a vector is ready to send to the MXU
+    input wire activation_ack                // MXU Controller pulses this when it has clocked the activation vector into its array
+
+    // =====================================================================
+    // WEIGHT FETCHER: Deserializes the weight stream into a 64-bit vector for the MXU
+    // =====================================================================
+    input wire [WA_BITS-1:0] weight_in,  // Signed weights, one per MXU column (N-wide)
+    input wire weight_valid,            // Host pulses this when weight_in is valid this cycle
+    output wire weight_ready,           // Weight Fetcher pulses this when a vector is ready to send to the MXU
+    output wire weight_valid,             // Weight Fetcher pulses this when a vector is ready to send to the MXU
+    input wire weight_ack                // MXU Controller pulses this when it has clocked the weight vector into its array
 
     // =====================================================================
     // CONTROL: Systolic Data Setup (activation stagger)
@@ -86,7 +103,6 @@ module tpu_datapath #(
     // =====================================================================
     input wire [N-1:0] resetAreg, resetWreg, resetSreg, resetCreg,
     input wire [N-1:0] enableAreg, enableWreg, enableSreg, enableCreg,
-    input wire signed [(N*WA_BITS)-1:0] weight_in,   // Weight FIFO path per the diagram -- not modeled as RTL in this project, so this is a direct top-level input. Unstaggered, matching arraydatapath's own ports (only activations pass through the stagger block).
 
     // =====================================================================
     // CONTROL: Deskew Buffer (sits between the MXU and the Accumulator --
@@ -142,6 +158,8 @@ module tpu_datapath #(
     wire [(N*BITS)-1:0]    activator_data_out;         // Activation Unit -> Normalization Unit
     wire [(N*BITS)-1:0]    normalizer_data_out;        // Normalization Unit -> Quantizer
     wire [(N*WA_BITS)-1:0] quant_data_out_bus;         // Quantizer -> Unified Buffer (norm_write_data), closing the loop
+    wire [(N*WA_BITS)-1:0] weight_fetcher_out;        // Weight Fetcher -> MXU (weight_in)
+    wire [(N*WA_BITS)-1:0] activation_fetcher_out;    // Activation Fetcher -> MXU (activation_in)
 
     // =========================================================================
     // Unified Buffer (Local Activation Storage)
@@ -159,13 +177,33 @@ module tpu_datapath #(
 
         .host_write_req(host_write_req),
         .host_write_address(host_write_address),
-        .host_write_data(host_write_data),
+        .host_write_data(activation_fetcher_out),
 
         .read_enable(ub_read_enable),
         .read_address(ub_read_address),
         .read_data(ub_read_data),
 
         .write_conflict(ub_write_conflict)
+    );
+
+    // =====================================================================
+    // ACTIVATION FETCHER: Deserializes the activation stream into a 64-bit vector for the MXU
+    // =====================================================================
+    activation_fetcher #(
+        .NUM_LANES(N),
+        .DATA_WIDTH(WA_BITS)
+    ) u_activation_fetcher (
+        .clock(clock),
+        .reset(reset),
+
+        .act_valid(activation_valid),
+        .act_ready(activation_ready),
+        .act_data(activation_in),
+
+        .word_valid(word_valid),
+        .word_ack(activation_ack),
+
+        .act_out(activation_fetcher_out)
     );
 
     // =========================================================================
@@ -177,11 +215,34 @@ module tpu_datapath #(
     ) u_stagger (
         .clock(clock),
         .reset(reset),
+
         .valid_in(stagger_valid_in),
         .vector_in(ub_read_data),
+
         .valid_out(stagger_valid_out),
         .vector_out(stagger_vector_out)
     );
+
+    // =====================================================================
+    // WEIGHT FETCHER: Deserializes the weight stream into a 64-bit vector for the MXU
+    // =====================================================================        
+    weight_fetcher #(
+        .NUM_LANES(N),
+        .DATA_WIDTH(WA_BITS)
+    ) u_weight_fetcher (
+        .clock(clock),
+        .reset(reset),
+
+        .w_valid(weight_valid),
+        .w_ready(weight_ready),
+        .w_data(weight_in),
+
+        .weight_valid(weight_valid),
+        .weight_ack(weight_ack),
+
+        .weight_out(weight_fetcher_out)
+    );
+
 
     // =========================================================================
     // Matrix Multiply Unit (the NxN systolic array)
@@ -198,7 +259,7 @@ module tpu_datapath #(
         .enableSreg(enableSreg), .enableCreg(enableCreg),
 
         .activation_in(stagger_vector_out),
-        .weight_in(weight_in),
+        .weight_in(weight_fetcher_out),
 
         .partial_sum(array_partial_sum)
     );
@@ -213,8 +274,10 @@ module tpu_datapath #(
     ) u_deskew (
         .clock(clock),
         .reset(reset),
+
         .valid_in(array_valid_in),
         .vector_in(array_partial_sum),
+
         .valid_out(deskew_valid_out),
         .vector_out(deskew_vector_out)
     );
@@ -262,10 +325,13 @@ module tpu_datapath #(
         .BITS(BITS)
     ) u_normalizer (
         .clock(clock),
+
         .data_in(activator_data_out),
+
         .gain(norm_gain),
         .bias(norm_bias),
         .shift(norm_shift),
+
         .data_out(normalizer_data_out)
     );
 
@@ -280,9 +346,12 @@ module tpu_datapath #(
     ) u_quantizer (
         .clock(clock),
         .reset(reset),
+
         .q_data_in_vector(normalizer_data_out),
+
         .inv_scale(quant_inv_scale),
         .zero_point(quant_zero_point),
+
         .q_data_out_vector(quant_data_out_bus)
     );
 
