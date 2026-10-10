@@ -75,22 +75,24 @@ module tpu_datapath #(
     output wire [(N*WA_BITS)-1:0]               ub_read_data,   // Registered UB read result (updates only when ub_read_enable=1, otherwise holds). Feeds the stagger block internally AND is exposed here so a WRITE_HOST sequencer can capture it for host readback. NOTE: this is ONE shared read port -- a MATMUL read and a WRITE_HOST read cannot happen in the same cycle (structural hazard for the controller to arbitrate).
 
     // =====================================================================
-    // ACTIVATION FETCHER: Deserializes the activation stream into a 64-bit vector for the MXU
+    // ACTIVATION FETCHER: Deserializes the byte-wide activation stream into
+    // an (N*WA_BITS)-bit vector feeding the Unified Buffer's host write port
     // =====================================================================
-    input wire [WA_BITS-1:0] activation_in,  // Unsigned activations, one per MXU column (N-wide)
-    input wire activation_valid,            // Host pulses this when activation_in is valid this cycle
-    output wire activation_ready,           // Activation Fetcher pulses this when a vector is ready to send to the MXU
-    output wire activation_valid,             // Activation Fetcher pulses this when a vector is ready to send to the MXU
-    input wire activation_ack                // MXU Controller pulses this when it has clocked the activation vector into its array
+    input wire [WA_BITS-1:0] activation_in,   // One unsigned activation byte per cycle from the host stream
+    input wire activation_valid,              // Host pulses this when activation_in is valid this cycle
+    output wire activation_ready,             // Activation Fetcher is ready to accept a byte (deasserts while a full word awaits ack)
+    output wire activation_word_valid,        // Activation Fetcher pulses this when a full vector is ready on the UB host write port
+    input wire activation_ack,                // Sequencer pulses this when it has committed the vector into the Unified Buffer (host_write_req)
 
     // =====================================================================
-    // WEIGHT FETCHER: Deserializes the weight stream into a 64-bit vector for the MXU
+    // WEIGHT FETCHER: Deserializes the byte-wide weight stream into an
+    // (N*WA_BITS)-bit vector feeding the MXU's weight_in port
     // =====================================================================
-    input wire [WA_BITS-1:0] weight_in,  // Signed weights, one per MXU column (N-wide)
-    input wire weight_valid,            // Host pulses this when weight_in is valid this cycle
-    output wire weight_ready,           // Weight Fetcher pulses this when a vector is ready to send to the MXU
-    output wire weight_valid,             // Weight Fetcher pulses this when a vector is ready to send to the MXU
-    input wire weight_ack                // MXU Controller pulses this when it has clocked the weight vector into its array
+    input wire [WA_BITS-1:0] weight_in,       // One signed weight byte per cycle from the host stream
+    input wire weight_valid,                  // Host pulses this when weight_in is valid this cycle
+    output wire weight_ready,                 // Weight Fetcher is ready to accept a byte (deasserts while a full word awaits ack)
+    output wire weight_word_valid,            // Weight Fetcher pulses this when a full vector is ready on the MXU weight input
+    input wire weight_ack,                    // Controller pulses this when it has clocked the weight vector into the array (enableWreg)
 
     // =====================================================================
     // CONTROL: Systolic Data Setup (activation stagger)
@@ -159,7 +161,7 @@ module tpu_datapath #(
     wire [(N*BITS)-1:0]    normalizer_data_out;        // Normalization Unit -> Quantizer
     wire [(N*WA_BITS)-1:0] quant_data_out_bus;         // Quantizer -> Unified Buffer (norm_write_data), closing the loop
     wire [(N*WA_BITS)-1:0] weight_fetcher_out;        // Weight Fetcher -> MXU (weight_in)
-    wire [(N*WA_BITS)-1:0] activation_fetcher_out;    // Activation Fetcher -> MXU (activation_in)
+    wire [(N*WA_BITS)-1:0] activation_fetcher_out;    // Activation Fetcher -> Unified Buffer (host_write_data)
 
     // =========================================================================
     // Unified Buffer (Local Activation Storage)
@@ -187,7 +189,8 @@ module tpu_datapath #(
     );
 
     // =====================================================================
-    // ACTIVATION FETCHER: Deserializes the activation stream into a 64-bit vector for the MXU
+    // ACTIVATION FETCHER: Deserializes the byte-wide activation stream into
+    // the vector driving the Unified Buffer's host write port
     // =====================================================================
     activation_fetcher #(
         .NUM_LANES(N),
@@ -200,7 +203,7 @@ module tpu_datapath #(
         .act_ready(activation_ready),
         .act_data(activation_in),
 
-        .word_valid(word_valid),
+        .word_valid(activation_word_valid),
         .word_ack(activation_ack),
 
         .act_out(activation_fetcher_out)
@@ -237,8 +240,8 @@ module tpu_datapath #(
         .w_ready(weight_ready),
         .w_data(weight_in),
 
-        .weight_valid(weight_valid),
-        .weight_ack(weight_ack),
+        .word_valid(weight_word_valid),
+        .word_ack(weight_ack),
 
         .weight_out(weight_fetcher_out)
     );

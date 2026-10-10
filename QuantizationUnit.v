@@ -29,4 +29,5 @@ module quantizer #(
                 .q_data_out(q_data_out_vector[(i+1)*8-1:i*8])
             );
         end
+    endgenerate
 endmodule
