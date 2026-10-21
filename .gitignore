@@ -1,8 +1,8 @@
 Register8b_testbench/
 Testbench_Example_2/
 System_Verilog_OOP/
-ControllerDesgin.txt
-tpu_implementation_playbook
+ControllerDesign.txt
+tpu_implementation_playbook.md
 RTL/a.out
 .DS_Store
 RTL/.DS_Store
