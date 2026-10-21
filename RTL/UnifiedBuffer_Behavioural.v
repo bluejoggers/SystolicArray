@@ -1,18 +1,18 @@
-/*
+ /*
 UnifiedBuffer.v
 
 Implements the Unified Buffer block from the TPU v1 architecture diagram --
 the on-chip local activation storage that sits between the compute pipeline
 (Activation/Normalization/Quantization) and the MXU.
 
-Capacity: 128 KiB total.
-  128 KiB = 131072 bytes = 1,048,576 bits = 32768 words of 32 bits
+Capacity: 32 KiB total.
+  32 KiB = 32768 bytes = 262144 bits = 32768 words of 8 bits
 
 Organisation: 8 independent banks, matching the 8-word-wide parallelism of
 the systolic array (one word per column).
   32768 words / 8 banks = 4096 words per bank
-  4096 words x 32 bits  = 16384 bytes = 16 KiB per bank
-  8 banks x 16 KiB       = 128 KiB total
+  4096 words x 8 bits  = 32768 bytes = 32 KiB per bank
+  8 banks x 4 KiB       = 32 KiB total
   ADDR_WIDTH per bank = clog2(4096) = 12 bits
 
 -------------------------------------------------------------------------
@@ -76,7 +76,7 @@ Collision behaviour (verified in simulation):
 
 module unified_buffer #(
     parameter NUM_BANKS = 8,            // One bank per systolic array column
-    parameter DEPTH     = 4096          // Words per bank => 4096*32b = 16KiB/bank, 128KiB total across 8 banks
+    parameter DEPTH     = 4096          // Words per bank => 4096*8b = 32KiB/bank, 32KiB total across 8 banks
 )(
     input wire clock,
     input wire reset,
@@ -84,17 +84,17 @@ module unified_buffer #(
     // ---- WRITE PORT 1: from the on-chip Normalization/Quantization block ----
     input wire [NUM_BANKS-1:0]                  norm_write_req,     // Per-bank write request (NOT a single shared enable)
     input wire [(NUM_BANKS*$clog2(DEPTH))-1:0]  norm_write_address, // One write address per bank
-    input wire [(NUM_BANKS*8)-1:0]               norm_write_data,    // Concatenated 32-bit words, one per bank
+    input wire [(NUM_BANKS*8)-1:0]               norm_write_data,    // Concatenated 8-bit words, one per bank
 
     // ---- WRITE PORT 2: from off-chip memory via the Host Interface / DMA ----
     input wire [NUM_BANKS-1:0]                  host_write_req,     // Per-bank write request
     input wire [(NUM_BANKS*$clog2(DEPTH))-1:0]  host_write_address, // One write address per bank
-    input wire [(NUM_BANKS*8)-1:0]               host_write_data,    // Concatenated 32-bit words, one per bank
+    input wire [(NUM_BANKS*8)-1:0]               host_write_data,    // Concatenated 8-bit words, one per bank
 
     // ---- READ PORT: toward MXU (next-layer activations) / Host Interface readback ----
     input wire read_enable,
     input wire [(NUM_BANKS*$clog2(DEPTH))-1:0]  read_address,       // One read address per bank
-    output reg  [(NUM_BANKS*8)-1:0]               read_data,          // Concatenated 32-bit words, one per bank
+    output reg  [(NUM_BANKS*8)-1:0]               read_data,          // Concatenated 8-bit words, one per bank
 
     // ---- STATUS: flags which bank(s) had a NORM write dropped this cycle due to HOST priority ----
     output wire [NUM_BANKS-1:0]                  write_conflict
@@ -129,7 +129,7 @@ module unified_buffer #(
             wire [7:0]           bank_wr_data = host_req ? host_data : norm_data;
             assign write_conflict[bank] = norm_req & host_req;   // NORM write dropped this cycle when this is 1
 
-            // The memory array for this bank: 4096 words x 32 bits = 16 KiB
+            // The memory array for this bank: 4096 words x 8 bits = 32 KiB
             reg [7:0] mem [0:DEPTH-1];
 
             integer i;

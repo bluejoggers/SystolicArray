@@ -1,0 +1,377 @@
+================================================================================
+ TPU CONTROLLER -- DESIGN PLAN
+ Companion to TPU_Datapath.v (datapath is complete; this adds the sequencer)
+================================================================================
+
+GOAL
+----
+A single, deliberately simple controller module ("tpu_controller") that drives
+every control input of tpu_datapath so the chip can execute one complete
+operation end-to-end with no host micromanagement:
+
+    load weights -> load activations into UB -> matrix multiply ->
+    accumulate -> activate/normalize/quantize -> write result back to UB
+
+One matmul pass at a time, run-to-completion, started by a single "start"
+pulse and reporting a single "done" pulse. No instruction decode, no
+overlapping of phases, no interrupts. Those can come later; the FSM below
+leaves room for them.
+
+
+================================================================================
+ 1. WHAT THE CONTROLLER MUST DRIVE (control-surface inventory)
+================================================================================
+
+Everything below is a top-level port of tpu_datapath today. The controller
+module sits BESIDE the datapath in a new chip-top module and drives/observes:
+
+  DRIVES (outputs of controller -> inputs of datapath)
+  ----------------------------------------------------
+  Fetcher handshakes : activation_ack, weight_ack
+  UB host write      : host_write_req[N], host_write_address[N*12]
+  UB read            : ub_read_enable, ub_read_address[N*12]
+  Stagger            : stagger_valid_in
+  MXU                : resetAreg/Wreg/Sreg/Creg[N], enableAreg/Wreg/Sreg/Creg[N]
+  Deskew             : array_valid_in
+  Accumulator        : acc_accumulate, acc_read_enable, acc_read_address,
+                       acc_write_address, acc_act_read_enable, acc_act_read_address
+  Writeback          : norm_write_req[N], norm_write_address[N*12]
+  (Pass-through CSRs): norm_gain/bias/shift, quant_inv_scale/zero_point
+
+  OBSERVES (outputs of datapath -> inputs of controller)
+  ------------------------------------------------------
+  activation_word_valid   -- Activation Fetcher has a full N-byte vector ready
+  weight_word_valid       -- Weight Fetcher has a full N-byte vector ready
+  deskew_valid_out        -- aligned result wave is landing in the Accumulator
+  ub_write_conflict[N]    -- a NORM writeback lost arbitration to a host write
+  stagger_valid_out[N]    -- debug only; nothing needs to consume it
+
+  FROM THE HOST (new, to the controller itself)
+  ---------------------------------------------
+  start                   -- one-cycle pulse: run one full pass
+  num_rows[?]             -- how many activation row-vectors this pass processes
+  base addresses          -- UB source base, UB destination base, ACC base
+  busy / done             -- status back to the host
+
+
+================================================================================
+ 2. CONTROLLER ARCHITECTURE
+================================================================================
+
+The controller is three small pieces, not one big one:
+
+  (a) a Moore FSM        -- decides WHICH PHASE we are in,
+  (b) address counters   -- decide WHERE each phase reads/writes,
+  (c) delay pipes        -- short shift registers that convert "I issued a
+                            read at cycle T" into correctly-timed downstream
+                            pulses, because the datapath itself has fixed,
+                            known latencies but NO internal valid chain for
+                            the accumulate and writeback paths.
+
+                 +--------------------------------------------------+
+                 |                 tpu_controller                   |
+                 |                                                  |
+   start ------->|  +--------+     +------------------+             |
+   num_rows ---->|  |  MAIN  |---->| ADDRESS COUNTERS |--addresses--+--> ub_read_address
+   base addrs -->|  |  FSM   |     |  ub_rd, acc_wr,  |             |    acc_*_address
+                 |  | (Moore)|     |  acc_rd, ub_wb,  |             |    host_write_address
+   busy  <-------|  |        |     |  row counter     |             |    norm_write_address
+   done  <-------|  +--------+     +------------------+             |
+                 |      |                                           |
+                 |      | phase enables                             |
+                 |      v                                           |
+                 |  +-------------------------------------+         |
+                 |  |            DELAY PIPES              |--pulses-+--> array_valid_in
+                 |  | row_issued ->[N dly]-> array_valid  |         |    acc_read_enable
+                 |  | row_issued ->[2N-2 ]-> acc_read_en  |         |    norm_write_req
+                 |  | act_rd_en  ->[WB_LAT]-> norm_wr_req |         |
+                 |  +-------------------------------------+         |
+                 |                                                  |
+   word_valids ->|  (handshake logic: ack = valid & FSM-phase)      |
+                 +--------------------------------------------------+
+
+  Why Moore: every datapath enable is registered and glitch-free, and each
+  state's outputs can be read directly off the state name in a waveform.
+
+  Why counters live OUTSIDE the FSM: the FSM only says "counting is allowed";
+  the counters themselves are plain `if (enable) count <= count + 1` blocks.
+  This keeps the FSM case statement tiny and makes each counter individually
+  testable.
+
+  Why delay pipes instead of more FSM states: the MXU pipeline has several
+  rows in flight AT ONCE (row k enters while row k-3's results are still
+  draining). An FSM state can only represent one global phase; a shift
+  register naturally represents "this event happened T cycles ago" for many
+  overlapping events. Three pipes, all just {reg, reg, ...} chains.
+
+
+================================================================================
+ 3. THE MAIN FSM
+================================================================================
+
+            start
+  +------+ ------> +--------------+  all N weight words clocked in
+  | IDLE |         | LOAD_WEIGHTS | ------------------------------+
+  +------+         +--------------+                               |
+     ^                                                            v
+     |                                                   +----------------+
+     |             (host streams activations;            | LOAD_ACTS      |
+     |              controller commits each full         | (fill UB via   |
+     |              word into the UB)                    |  host port)    |
+     |                                                   +----------------+
+     |                                                            | num_rows
+     |                                                            | words written
+     |  done                                                      v
+  +------+         +-----------+   pipeline drained       +---------------+
+  | DONE | <------ | WRITEBACK | <----------------------- | COMPUTE+DRAIN |
+  +------+         +-----------+   (last deskew_valid     +---------------+
+                                    arrived)
+
+  State-by-state contract
+  -----------------------
+  IDLE
+    All enables low, all N-bit reset arrays (resetAreg/Wreg/Sreg/Creg)
+    asserted so the PE mesh starts clean. Latch num_rows and base addresses
+    when start pulses.
+
+  LOAD_WEIGHTS   (weight-stationary fill of the PE mesh)
+    The array ingests weights at COLUMN 0 and shifts them RIGHT one column
+    per enabled cycle (arraydatapath: w_mesh[row][0] <= weight_in slice,
+    weight_pass goes to j+1). The weight fetcher needs N cycles of byte
+    streaming to build each N-wide vector, so the fill is handshake-paced:
+
+      wait weight_word_valid -> pulse {weight_ack, enableWreg = all-ones}
+      for exactly ONE cycle -> repeat N times.
+
+    After the k-th pulse, vector 0 sits k columns deep. After N pulses the
+    mesh is full (vector 0 in column N-1, vector N-1 in column 0) and
+    enableWreg goes LOW FOREVER (for this pass) -- that is what makes the
+    array weight-stationary. A 3-bit (clog2(N)) vector counter tracks k.
+
+    NOTE ON ORDERING: vector fed FIRST lands in the LAST column. The host
+    must stream the weight matrix column N-1 first. Document this in the
+    testbench rather than adding reordering hardware.
+
+  LOAD_ACTS   (host -> Activation Fetcher -> UB)
+    Same handshake shape as weights, different destination:
+
+      wait activation_word_valid ->
+        pulse {activation_ack, host_write_req = all-ones} for one cycle,
+        host_write_address = (ub_src_base + act_word_counter) replicated
+        across all N banks -> act_word_counter++.
+
+    Repeat until act_word_counter == num_rows. The UB arbiter gives host
+    writes priority, and nothing else is writing during this phase, so
+    ub_write_conflict stays 0 (assert on it in the TB).
+
+  COMPUTE+DRAIN   (the heart; one UB row issued per cycle)
+    Per issued row (row counter r = 0 .. num_rows-1), all in the SAME cycle:
+      ub_read_enable   = 1
+      ub_read_address  = ub_src_base + r   (replicated per bank)
+      stagger_valid_in = 1  (one cycle AFTER the first read -- see timing
+                             table below: UB read data registers at T+1)
+      enableAreg = enableSreg = enableCreg = all-ones (held high for the
+      whole phase; the stagger block already times each lane's data)
+    plus the three delay pipes get a `1` pushed in (see section 4).
+    After the last row is issued, stop issuing but keep clocking until the
+    last deskew_valid_out pulse has landed (a small drain counter counts
+    2N-1 + margin cycles, or simply: wait until the array_valid delay pipe
+    and the deskew depth are both empty).
+
+    acc_accumulate: 0 for a single-pass matmul (plain store). Expose it as
+    a CSR bit so a later multi-tile pass can set it to 1 -- the read-before-
+    write pipe (section 4) is required reading before enabling that.
+
+  WRITEBACK   (Accumulator -> ReLU -> norm -> quant -> UB)
+    For each result row w = 0 .. num_rows-1:
+      cycle T  : acc_act_read_enable = 1,
+                 acc_act_read_address = acc_base + w
+      T+WB_LAT : norm_write_req = all-ones,
+                 norm_write_address = ub_dst_base + w
+    The gap WB_LAT is produced by the writeback delay pipe, so reads can be
+    issued back-to-back (one per cycle) and the write pulses follow along
+    perfectly, WB_LAT behind. Watch ub_write_conflict: it must stay 0
+    (no host writes happen in this phase).
+
+  DONE
+    Pulse done for one cycle, return to IDLE.
+
+
+================================================================================
+ 4. TIMING -- THE PART THAT ACTUALLY HAS TO BE RIGHT
+================================================================================
+
+All numbers below are derived from the module headers and RTL as written
+(INFERRED -- each one gets re-verified against waveforms in step V2 of the
+plan before the delay-pipe depths are frozen; keep every depth a localparam).
+
+Let T0 = the cycle stagger_valid_in goes high for row k (i.e., the cycle
+UB read DATA for row k is on ub_read_data -- one cycle after the read was
+issued, because the UB read port is registered).
+
+  Event                                              Cycle
+  -------------------------------------------------  -----------------
+  stagger output, lane j                             T0 + j
+  partial_sum (array bottom), lane j valid           T0 + N + j
+  deskew output: ALL lanes aligned                   T0 + 2N - 1
+  => array_valid_in must be high at                  T0 + N
+     (deskew delays valid by N-1: N + (N-1) = 2N-1)
+  => accumulator write happens at                    T0 + 2N - 1
+     (write_enable is hardwired to deskew_valid_out in TPU_Datapath.v)
+  => IF acc_accumulate=1: acc_read_enable must be
+     high, with read_address = that row's write
+     address, at                                     T0 + 2N - 2
+     (Accumulator.v: registered read; present the
+      read address ONE cycle before the write)
+
+  Pictorially, for N=8, one row (X = the event):
+
+  cycle:        T0   +1 +2 +3 +4 +5 +6 +7 +8 ... +14 +15
+  stagger in    X
+  array busy    |====== skewed wavefront ==========|
+  array_valid_in                          X            (T0+8)
+  acc_read_en (accumulate mode)                  ...X  (T0+14)
+  deskew_valid / ACC WRITE                          X  (T0+15 = 2N-1)
+
+  So the controller needs exactly three delay pipes:
+
+  PIPE A  depth N      row_issue pulse -> array_valid_in
+  PIPE B  depth 2N-2   row_issue pulse -> acc_read_enable (accumulate mode
+                       only; also carries the row's acc address so
+                       acc_read_address/acc_write_address stay paired)
+  PIPE C  depth WB_LAT acc_act_read_enable -> norm_write_req
+                       WB_LAT = 1 per TPU_Datapath.v's header note
+                       ("norm_write_req exactly ONE CYCLE AFTER
+                       acc_act_read_enable"). This is the one latency most
+                       worth re-checking in simulation (step V2): the path
+                       is registered-ACC-read + combinational ReLU/norm +
+                       one quantizer output register, and the header's
+                       claim has not yet been waveform-verified.
+
+  acc_write_address also needs to arrive at T0+2N-1 for row k. Simplest
+  correct form: a depth-(2N-1) address pipe alongside PIPE A/B carrying
+  (acc_base + k); or, since rows are issued one per cycle in order, a plain
+  counter that starts N+... cycles after the first row and increments on
+  every deskew_valid_out pulse:
+        if (deskew_valid_out) acc_write_address_counter++;
+  The counter form is smaller and is what this plan recommends -- addresses
+  are consumed strictly in issue order because the pipeline never reorders.
+
+
+================================================================================
+ 5. MODULE SKELETON (what controller.v will contain)
+================================================================================
+
+  module tpu_controller #(
+      parameter N = 8, ACC_DEPTH = 256, UB_DEPTH = 4096,
+      localparam UBA = $clog2(UB_DEPTH), ACA = $clog2(ACC_DEPTH)
+  )(
+      clock, reset,
+      // host
+      start, num_rows, ub_src_base, ub_dst_base, acc_base, csr_accumulate,
+      busy, done,
+      // datapath observe
+      activation_word_valid, weight_word_valid, deskew_valid_out,
+      ub_write_conflict,
+      // datapath drive  (everything in section 1)
+      ...
+  );
+      // 1. state register + next-state comb block  (6 states, 3-bit enc)
+      // 2. counters: weight_vec_cnt, act_word_cnt, row_cnt, drain_cnt,
+      //              acc_wr_addr_cnt, wb_rd_cnt, wb_wr_cnt
+      // 3. pipes:    pipe_a[N-1:0], pipe_b[2N-3:0], pipe_c[WB_LAT-1:0]
+      // 4. output decode: every datapath signal = f(state, counters, pipes)
+  endmodule
+
+  Per-bank address replication (every UB/ACC address port wants N copies of
+  the same address this pass): one helper -- {N{addr}} -- done at the
+  output-decode layer, never stored N-wide.
+
+
+================================================================================
+ 6. STEP-BY-STEP IMPLEMENTATION PLAN
+================================================================================
+
+Each step compiles and is simulated before moving on. "TB" = a small
+dedicated iverilog testbench (plain Verilog, $display/$fatal self-checking).
+
+  STEP 1 -- Chip-top wrapper (half a day)
+    Create tpu_top.v instantiating tpu_datapath + (empty-shell)
+    tpu_controller, wiring every control port between them, exposing only:
+    clock, reset, start, config, the two byte streams
+    (activation_in/valid/ready, weight_in/valid/ready), busy, done.
+    Gate: iverilog -g2012 clean compile of the full file list.
+
+  STEP 2 -- FSM skeleton + IDLE/DONE (half a day)
+    Code the 6-state Moore FSM with all outputs at safe defaults (resets
+    asserted in IDLE, everything else 0). busy/done work. TB: pulse start,
+    watch it walk through states on forced conditions, return to IDLE.
+
+  STEP 3 -- LOAD_WEIGHTS (1 day)
+    Implement the weight handshake (wait word_valid -> one-cycle
+    ack+enableWreg pulse -> count to N). TB: stream 64 bytes in, assert the
+    fetcher's ready/valid protocol is honored (no byte accepted while
+    word_valid high), assert exactly N enableWreg pulses. Then peek the PE
+    weight registers hierarchically to confirm the column-reversal ordering
+    note from section 3.
+
+  STEP 4 -- LOAD_ACTS (1 day)
+    Same handshake into the UB host port with the incrementing address.
+    TB: stream num_rows*N bytes, then hierarchically read UB bank contents
+    and compare against the expected row-major layout. Assert
+    ub_write_conflict == 0 throughout.
+
+  STEP 5 -- COMPUTE issue + PIPE A (1-2 days)
+    Row issue loop (ub_read_enable/address + stagger_valid_in one cycle
+    later), PIPE A -> array_valid_in, enableA/S/C held high, drain counter.
+    TB (the big one): known 8x8 weight matrix, num_rows=8 identity
+    activations; check deskew_valid_out pulses exactly num_rows times and
+    the accumulator memory (hierarchical peek) holds W^T rows -- this
+    single test VERIFIES the entire section-4 timing table. Re-derive the
+    pipe depths from the waveform if anything lands off-by-one, and only
+    then freeze the localparams.
+
+  STEP 6 -- Accumulate mode + PIPE B (1 day, optional for v1)
+    csr_accumulate=1 path: PIPE B drives acc_read_enable/read_address one
+    cycle ahead of each landing write. TB: run the same matmul twice onto
+    the same acc_base; memory must hold exactly 2x the step-5 values.
+    (Ship v1 without this if time-boxed -- it is additive, not structural.)
+
+  STEP 7 -- WRITEBACK + PIPE C (1 day)
+    Back-to-back acc_act reads, PIPE C -> norm_write_req, address counters
+    for both sides. Set norm/quant CSRs to identity-ish values (gain=1<<n,
+    bias=0, inv_scale s.t. output==input for small numbers). TB: after
+    done, UB rows at ub_dst_base == ReLU(matmul result) requantized --
+    computed independently in the TB. Assert ub_write_conflict == 0.
+    THIS is where WB_LAT's header-claimed value of 1 gets its flip-test:
+    deliberately set WB_LAT=2 and confirm the test FAILS differently, so
+    the pass isn't vacuous.
+
+  STEP 8 -- Full end-to-end + cleanup (1 day)
+    One TB driving only the chip-top interface (byte streams + start),
+    checking only UB output contents. Random weight/activation matrices
+    against a behavioral golden model in the TB. Then: lint pass, every
+    magic number a named localparam, section-4 table pasted as the
+    controller's header comment.
+
+  VERIFICATION CROSS-CUTTING RULES (apply at every step)
+    V1: every TB is self-checking ($fatal on mismatch), no eyeballing.
+    V2: every latency constant in section 4 is confirmed against a
+        waveform (gtkwave/VCD) before its pipe depth is frozen -- the
+        table above is derived from reading the RTL, not yet from
+        simulation.
+    V3: never hand-wave a "+1": if a check passes with depth D, re-run
+        with D-1 and D+1 and confirm both FAIL.
+
+
+================================================================================
+ 7. EXPLICIT NON-GOALS (v1)
+================================================================================
+  - No overlap of phases (e.g., loading next weights during writeback).
+    The FSM structure permits adding it later by splitting COMPUTE's drain.
+  - No multi-tile / K>8 reduction sequencing (needs accumulate mode +
+    an outer tile loop around LOAD_WEIGHTS/COMPUTE).
+  - No per-bank independent addressing (all N banks always get the same
+    address this pass; the ports support more, the controller doesn't).
+  - No error handling beyond asserting on ub_write_conflict in the TBs.
+================================================================================ 
