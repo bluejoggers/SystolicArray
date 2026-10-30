@@ -1,4 +1,4 @@
-module quantizer #(
+module QuantizationUnit #(
     parameter BITS = 32,
     parameter INPUT_WIDTH = 8
 )(
@@ -15,7 +15,7 @@ module quantizer #(
     genvar i;
     generate
         for (i=0; i<INPUT_WIDTH; i=i+1) begin : quantization_unit
-            quantize #(
+            Quantizer #(
                 .BITS(BITS)
             ) quantize_inst (
                 .clock(clock),

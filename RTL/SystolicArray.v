@@ -1,4 +1,4 @@
-module arraydatapath #(
+module SystolicArray #(
     parameter N = 8 //To generate an NxN Systolic Array
 )(
     input wire clock,
@@ -54,7 +54,7 @@ module arraydatapath #(
         for (i = 0; i < N; i = i + 1) begin : gen_rows
             for (j = 0; j < N; j = j + 1) begin : gen_cols
                 
-                MAC pe (
+                PE pe (
                     .clock(clock),
                     
                     // Pull inputs from the current coordinate mesh location

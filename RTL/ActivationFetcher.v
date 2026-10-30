@@ -1,4 +1,4 @@
-module activation_fetcher #(
+module ActivationFetcher #(
     parameter NUM_LANES  = 8,
     parameter DATA_WIDTH = 8
 )(
@@ -19,8 +19,11 @@ module activation_fetcher #(
 );
 
     localparam TOTAL_WIDTH = NUM_LANES * DATA_WIDTH;
+    localparam COUNTER_WIDTH = $clog2(NUM_LANES);
+    localparam LAST_INT = NUM_LANES-1;
+    localparam [COUNTER_WIDTH-1:0] LAST_BYTE = LAST_INT[COUNTER_WIDTH-1:0]; // Last byte index for the current 64-bit word
 
-    reg [$clog2(NUM_LANES)-1:0] byte_counter; // Counts bytes received for current 64-bit word
+    reg [COUNTER_WIDTH-1:0] byte_counter; // Counts bytes received for current 64-bit word
 
     // Backpressure: pause external stream while waiting for UB to consume word
     assign act_ready = !word_valid;
@@ -39,7 +42,7 @@ module activation_fetcher #(
                 // Shift in new byte at bottom, push older bytes up
                 act_out <= {act_out[TOTAL_WIDTH-DATA_WIDTH-1:0], act_data};
 
-                if (byte_counter == NUM_LANES - 1) begin
+                if (byte_counter == LAST_BYTE) begin
                     byte_counter   <= '0;
                     word_valid <= 1'b1; // 64-bit row ready for UB
                 end else begin

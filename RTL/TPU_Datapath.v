@@ -48,7 +48,7 @@ port declarations:
     the project).
 */
 
-module tpu_datapath #(
+module TPU_Datapath #(
     parameter N        = 8,     // Systolic array size / lane count -- drives every per-column parallelism below
     parameter WA_BITS   = 8,    // Weight/activation bit width. MUST stay 8: MAC (PE_datapath.v) hardcodes 8-bit weight/activation ports.
     parameter BITS      = 32,   // Accumulator/sum/carry bit width. MUST stay 32: MAC hardcodes 32-bit sum/carry ports.
@@ -166,7 +166,7 @@ module tpu_datapath #(
     // =========================================================================
     // Unified Buffer (Local Activation Storage)
     // =========================================================================
-    unified_buffer #(
+    UnifiedBuffer #(
         .NUM_BANKS(N),
         .DEPTH(UB_DEPTH)
     ) u_unified_buffer (
@@ -192,7 +192,7 @@ module tpu_datapath #(
     // ACTIVATION FETCHER: Deserializes the byte-wide activation stream into
     // the vector driving the Unified Buffer's host write port
     // =====================================================================
-    activation_fetcher #(
+    ActivationFetcher #(
         .NUM_LANES(N),
         .DATA_WIDTH(WA_BITS)
     ) u_activation_fetcher (
@@ -212,7 +212,7 @@ module tpu_datapath #(
     // =========================================================================
     // Systolic Data Setup (activation diagonal-wavefront stagger)
     // =========================================================================
-    systolic_stagger_block #(
+    SystolicDataSetup #(
         .NUM_LANES(N),
         .DATA_WIDTH(WA_BITS)
     ) u_stagger (
@@ -229,7 +229,7 @@ module tpu_datapath #(
     // =====================================================================
     // WEIGHT FETCHER: Deserializes the weight stream into a 64-bit vector for the MXU
     // =====================================================================        
-    weight_fetcher #(
+    WeightFetcher #(
         .NUM_LANES(N),
         .DATA_WIDTH(WA_BITS)
     ) u_weight_fetcher (
@@ -250,7 +250,7 @@ module tpu_datapath #(
     // =========================================================================
     // Matrix Multiply Unit (the NxN systolic array)
     // =========================================================================
-    arraydatapath #(
+    SystolicArray #(
         .N(N)
     ) u_array (
         .clock(clock),
@@ -271,7 +271,7 @@ module tpu_datapath #(
     // Deskew Buffer -- de-skews the diagonal wavefront out of the MXU into
     // a clean horizontal wave before the Accumulator.
     // =========================================================================
-    deskew_buffer #(
+    DeskewBuffer #(
         .NUM_LANES(N),
         .DATA_WIDTH(BITS)
     ) u_deskew (
@@ -288,7 +288,7 @@ module tpu_datapath #(
     // =========================================================================
     // Accumulator
     // =========================================================================
-    accumulator #(
+    Accumulator #(
         .INPUT_WIDTH(N),
         .DEPTH(ACC_DEPTH)
     ) u_accumulator (
@@ -312,10 +312,10 @@ module tpu_datapath #(
     // =========================================================================
     // Activation Unit (ReLU, per-lane)
     // =========================================================================
-    activator #(
+    ActivationUnit #(
         .INPUT_WIDTH(N),
         .BITS(BITS)
-    ) u_activator (
+    ) u_activation_unit (
         .data_in(acc_act_data_out),
         .data_out(activator_data_out)
     );
@@ -323,10 +323,10 @@ module tpu_datapath #(
     // =========================================================================
     // Normalization Unit (batch norm, per-lane)
     // =========================================================================
-    normalizer #(
+    NormalizationUnit #(
         .INPUT_WIDTH(N),
         .BITS(BITS)
-    ) u_normalizer (
+    ) u_normalization_unit (
         .clock(clock),
 
         .data_in(activator_data_out),
@@ -343,10 +343,10 @@ module tpu_datapath #(
     // Shares the same global `reset` net as every other block in this
     // pipeline.
     // =========================================================================
-    quantizer #(
+    QuantizationUnit #(
         .BITS(BITS),
         .INPUT_WIDTH(N)
-    ) u_quantizer (
+    ) u_quantization_unit (
         .clock(clock),
         .reset(reset),
 
@@ -358,4 +358,5 @@ module tpu_datapath #(
         .q_data_out_vector(quant_data_out_bus)
     );
 
+    wire _unused = &{1'b0, stagger_valid_out, 1'b0};
 endmodule

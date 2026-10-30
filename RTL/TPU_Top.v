@@ -6,7 +6,7 @@ External interface: one instruction port, two byte-wide host streams
 Compile with every .v in this directory except test.v.
 */
 
-module tpu_top #(
+module TPU_Top #(
     parameter N         = 8,
     parameter WA_BITS   = 8,
     parameter BITS      = 32,
@@ -70,55 +70,124 @@ module tpu_top #(
     wire [N-1:0]          norm_write_req;
     wire [N*UB_AW-1:0]    norm_write_address;
 
-    tpu_controller #(
+    TPU_Controller #(
         .N(N), .WA_BITS(WA_BITS), .BITS(BITS),
         .ACC_DEPTH(ACC_DEPTH), .UB_DEPTH(UB_DEPTH)
     ) u_ctrl (
-        .clock(clock), .reset(reset),
-        .instr_valid(instr_valid), .instr_ready(instr_ready), .instr_data(instr_data),
-        .instr_done(instr_done), .busy(busy),
-        .err_illegal_op(err_illegal_op), .err_ub_conflict(err_ub_conflict), .err_latency(err_latency),
-        .host_out_valid(host_out_valid), .host_out_ready(host_out_ready), .host_out_data(host_out_data),
-        .activation_word_valid(activation_word_valid), .weight_word_valid(weight_word_valid),
-        .deskew_valid_out(deskew_valid_out), .ub_write_conflict(ub_write_conflict),
+        .clock(clock), 
+        .reset(reset),
+
+        .instr_valid(instr_valid), 
+        .instr_ready(instr_ready), 
+        .instr_data(instr_data),
+        .instr_done(instr_done), 
+        .busy(busy),
+        .err_illegal_op(err_illegal_op), 
+        .err_ub_conflict(err_ub_conflict), 
+        .err_latency(err_latency),
+
+        .host_out_valid(host_out_valid), 
+        .host_out_ready(host_out_ready), 
+        .host_out_data(host_out_data),
+
+        .activation_word_valid(activation_word_valid), 
+        .weight_word_valid(weight_word_valid),
+
+        .deskew_valid_out(deskew_valid_out), 
+        .ub_write_conflict(ub_write_conflict),
         .ub_read_data(ub_read_data),
-        .host_write_req(host_write_req), .host_write_address(host_write_address),
-        .activation_ack(activation_ack), .weight_ack(weight_ack),
-        .ub_read_enable(ub_read_enable), .ub_read_address(ub_read_address),
+
+        .host_write_req(host_write_req), .
+        host_write_address(host_write_address),
+        .activation_ack(activation_ack), 
+        .weight_ack(weight_ack),
+        .ub_read_enable(ub_read_enable), 
+        .ub_read_address(ub_read_address),
         .stagger_valid_in(stagger_valid_in),
-        .resetAreg(resetAreg), .resetWreg(resetWreg), .resetSreg(resetSreg), .resetCreg(resetCreg),
-        .enableAreg(enableAreg), .enableWreg(enableWreg), .enableSreg(enableSreg), .enableCreg(enableCreg),
+
+        .resetAreg(resetAreg), 
+        .resetWreg(resetWreg), 
+        .resetSreg(resetSreg), 
+        .resetCreg(resetCreg),
+        .enableAreg(enableAreg), 
+        .enableWreg(enableWreg), 
+        .enableSreg(enableSreg), 
+        .enableCreg(enableCreg),
         .array_valid_in(array_valid_in),
-        .acc_accumulate(acc_accumulate), .acc_read_enable(acc_read_enable),
-        .acc_read_address(acc_read_address), .acc_write_address(acc_write_address),
-        .acc_act_read_enable(acc_act_read_enable), .acc_act_read_address(acc_act_read_address),
-        .norm_gain(norm_gain), .norm_bias(norm_bias), .norm_shift(norm_shift),
-        .quant_inv_scale(quant_inv_scale), .quant_zero_point(quant_zero_point),
-        .norm_write_req(norm_write_req), .norm_write_address(norm_write_address)
+
+        .acc_accumulate(acc_accumulate), 
+        .acc_read_enable(acc_read_enable),
+        .acc_read_address(acc_read_address), 
+        .acc_write_address(acc_write_address),
+        .acc_act_read_enable(acc_act_read_enable), 
+        .acc_act_read_address(acc_act_read_address),
+
+        .norm_gain(norm_gain), 
+        .norm_bias(norm_bias), 
+        .norm_shift(norm_shift),
+
+        .quant_inv_scale(quant_inv_scale), 
+        .quant_zero_point(quant_zero_point),
+
+        .norm_write_req(norm_write_req), 
+        .norm_write_address(norm_write_address)
     );
 
-    tpu_datapath #(
+    TPU_Datapath #(
         .N(N), .WA_BITS(WA_BITS), .BITS(BITS),
         .ACC_DEPTH(ACC_DEPTH), .UB_DEPTH(UB_DEPTH)
     ) u_dp (
-        .clock(clock), .reset(reset),
-        .host_write_req(host_write_req), .host_write_address(host_write_address),
-        .ub_write_conflict(ub_write_conflict),
-        .ub_read_enable(ub_read_enable), .ub_read_address(ub_read_address), .ub_read_data(ub_read_data),
-        .activation_in(activation_in), .activation_valid(activation_valid), .activation_ready(activation_ready),
-        .activation_word_valid(activation_word_valid), .activation_ack(activation_ack),
-        .weight_in(weight_in), .weight_valid(weight_valid), .weight_ready(weight_ready),
-        .weight_word_valid(weight_word_valid), .weight_ack(weight_ack),
-        .stagger_valid_in(stagger_valid_in), .stagger_valid_out(stagger_valid_out),
-        .resetAreg(resetAreg), .resetWreg(resetWreg), .resetSreg(resetSreg), .resetCreg(resetCreg),
-        .enableAreg(enableAreg), .enableWreg(enableWreg), .enableSreg(enableSreg), .enableCreg(enableCreg),
-        .array_valid_in(array_valid_in), .deskew_valid_out(deskew_valid_out),
-        .acc_accumulate(acc_accumulate), .acc_read_enable(acc_read_enable),
-        .acc_read_address(acc_read_address), .acc_write_address(acc_write_address),
-        .acc_act_read_enable(acc_act_read_enable), .acc_act_read_address(acc_act_read_address),
-        .norm_gain(norm_gain), .norm_bias(norm_bias), .norm_shift(norm_shift),
-        .quant_inv_scale(quant_inv_scale), .quant_zero_point(quant_zero_point),
-        .norm_write_req(norm_write_req), .norm_write_address(norm_write_address)
-    );
+        .clock(clock), 
+        .reset(reset),
 
+        .host_write_req(host_write_req), 
+        .host_write_address(host_write_address),
+        .ub_write_conflict(ub_write_conflict),
+        .ub_read_enable(ub_read_enable), 
+        .ub_read_address(ub_read_address), 
+        .ub_read_data(ub_read_data),
+
+        .activation_in(activation_in), 
+        .activation_valid(activation_valid), 
+        .activation_ready(activation_ready),
+        .activation_word_valid(activation_word_valid), 
+        .activation_ack(activation_ack),
+
+        .weight_in(weight_in), 
+        .weight_valid(weight_valid), 
+        .weight_ready(weight_ready),
+        .weight_word_valid(weight_word_valid), 
+        .weight_ack(weight_ack),
+
+        .stagger_valid_in(stagger_valid_in), 
+        .stagger_valid_out(stagger_valid_out),
+
+        .resetAreg(resetAreg), 
+        .resetWreg(resetWreg), 
+        .resetSreg(resetSreg), 
+        .resetCreg(resetCreg),
+        .enableAreg(enableAreg), 
+        .enableWreg(enableWreg), 
+        .enableSreg(enableSreg), 
+        .enableCreg(enableCreg),
+
+        .array_valid_in(array_valid_in), 
+        .deskew_valid_out(deskew_valid_out),
+
+        .acc_accumulate(acc_accumulate), 
+        .acc_read_enable(acc_read_enable),
+        .acc_read_address(acc_read_address), 
+        .acc_write_address(acc_write_address),
+        .acc_act_read_enable(acc_act_read_enable), 
+        .acc_act_read_address(acc_act_read_address),
+
+        .norm_gain(norm_gain), 
+        .norm_bias(norm_bias), 
+        .norm_shift(norm_shift),
+
+        .quant_inv_scale(quant_inv_scale), 
+        .quant_zero_point(quant_zero_point),
+        .norm_write_req(norm_write_req), 
+        .norm_write_address(norm_write_address)
+    );
 endmodule

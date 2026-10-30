@@ -1,4 +1,4 @@
-module MAC(
+module PE(
     input wire clock,
     
     input wire signed [7:0] weight,      // 8-bit Input Weight
@@ -24,7 +24,7 @@ module MAC(
 
 
     // Instantiate Weight and Activation Registers
-    register weightreg(
+    Register weightreg(
         .clk(clock),
         .rst(resetW),
         .en(enableW),
@@ -32,7 +32,7 @@ module MAC(
         .data_out(weight_out)
     );
 
-    register activationreg(
+    Register activationreg(
         .clk(clock),
         .rst(resetA),
         .en(enableA),
@@ -41,7 +41,7 @@ module MAC(
     );
 
     //Instantiate the Sum-in and Carry-in Registers to hold the Previous Sum and Carry for the next MAC operation
-    register #(.BITS(32)) suminreg(
+    Register #(.BITS(32))suminreg(
         .clk(clock),
         .rst(resetS),
         .en(enableS),
@@ -49,7 +49,7 @@ module MAC(
         .data_out(sumin_out)
     );
 
-    register #(.BITS(32)) carryinreg(
+    Register #(.BITS(32)) carryinreg(
         .clk(clock),
         .rst(resetC),
         .en(enableC),
@@ -73,4 +73,7 @@ module MAC(
     assign nextcarry = {carryout_csa[30:0], 1'b0}; // Shift the carryout left by 1 to align with the next stage
     assign weight_pass = weight_out; // Pass the weight to the next PE in the same row
     assign activation_pass = activation_out; // Pass the activation to the next PE in the same row
+
+    // Explicitly consume intentional MSB truncations (raw product sign-bit and CSA bit-32 overflow)
+    wire _unused = &{1'b0, raw_product[16], carryout_csa[31], 1'b0};
 endmodule

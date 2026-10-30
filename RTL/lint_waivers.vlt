@@ -1,0 +1,4 @@
+`verilator_config
+
+lint_off -file "*sram_acc_256x4_1rw1r.v"
+lint_off -file "*sram_ub_4096x8_1w1r.v"

@@ -4,8 +4,7 @@ Controller_FSM.v  --  tpu_controller
 Instruction-driven sequencer for tpu_datapath (TPU_Datapath.v). Drives every
 control input the datapath exposes; the datapath itself is unchanged.
 
-NOTE: ControllerDesign.txt was empty in the delivered project, so the
-instruction set below is modelled on the TPU v1 instruction classes that the
+NOTE: The instruction set below is modelled on the TPU v1 instruction classes that the
 datapath's own comments refer to (Read_Host_Memory, Read_Weights,
 MatrixMultiply, Activate, Write_Host_Memory) plus two parameter-setting ops.
 
@@ -65,7 +64,7 @@ datapath's SRAM controls. Reset is synchronous, active high, like most of
 the datapath.
 */
 
-module tpu_controller #(
+module TPU_Controller #(
     parameter N         = 8,
     parameter WA_BITS   = 8,
     parameter BITS      = 32,
@@ -94,7 +93,7 @@ module tpu_controller #(
     // ---------------------------------------------------------------------
     output wire                 host_out_valid,
     input  wire                 host_out_ready,
-    output wire [N*WA_BITS-1:0] host_out_data,
+    output wire [(N*WA_BITS)-1:0] host_out_data,
 
     // ---------------------------------------------------------------------
     // Datapath status
@@ -512,5 +511,11 @@ module tpu_controller #(
         if (ACC_AW > 16)   $display("ERROR tpu_controller: ACC_DEPTH exceeds the 16-bit acc_addr field");
     end
     `endif
+
+    wire _unused = &{1'b0,
+                     instr_data[59:57],
+                     i_ub,
+                     i_acc_a,
+                     1'b0};
 
 endmodule

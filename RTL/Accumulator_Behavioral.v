@@ -1,8 +1,7 @@
 /*
 Accumulator.v (pure Verilog)
 
-SIMPLIFIED ARCHITECTURE (replaces the previous mode[1:0] / dual-tiling-
-read / direct_write_data design): per column, just ONE 2:1 MUX and ONE
+SIMPLIFIED ARCHITECTURE : per column, just ONE 2:1 MUX and ONE
 adder.
 
     read_data (from this column's SRAM bank) ---\
@@ -47,7 +46,7 @@ Storage: 8 KiB total, split evenly across the 8 columns (unchanged).
   2048 words / 8 columns = 256 words per column -> DEPTH = 256, ADDR_WIDTH = 8
 */
 
-module accumulator #(
+module Accumulator #(
     parameter INPUT_WIDTH = 8,          // Number of columns in the systolic array
     parameter DEPTH       = 256         // Words per column => 256*32b = 8Kb = 1KiB/col, 8KiB total across 8 cols
 )(
@@ -131,16 +130,13 @@ module accumulator #(
         end
     endgenerate
 
+
 endmodule
 
 /*
 PHYSICAL-IMPLEMENTATION NOTE: each column now needs 1 write port + 2
 read ports (the reduction read port, plus the drain-to-Activation-Unit
-port) live in the same cycle -- a real improvement over the previous
-revision's 4-port design, and a more realistic ask of an SRAM macro
-compiler (many 1W2R or 2R1W macros exist; true 1W3R+ macros are much
-rarer). Still worth confirming against whatever memory compiler you
-actually intend to target.
+port) live in the same cycle.
 
 INTERFACE NOTE tying back to the deskew buffer: since arraydatapath's
 `partial_sum` is already a single resolved value per column (its own

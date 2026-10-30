@@ -41,7 +41,7 @@ WHAT THIS MODULE DOES:
   Accumulator's mxu_write_enable.
 */
 
-module deskew_buffer #(
+module DeskewBuffer #(
     parameter NUM_LANES  = 8,   // Must match arraydatapath's N
     parameter DATA_WIDTH = 32   // partial_sum is 32 bits per column
 )(
@@ -73,7 +73,7 @@ module deskew_buffer #(
                 reg [DATA_WIDTH-1:0] delay_chain [0:DELAY-1];
                 integer i;
 
-                always @(posedge clock or posedge reset) begin
+                always @(posedge clock) begin
                     if (reset) begin
                         for (i = 0; i < DELAY; i = i + 1) begin
                             delay_chain[i] <= {DATA_WIDTH{1'b0}};
@@ -106,7 +106,7 @@ module deskew_buffer #(
             reg [NUM_LANES-2:0] valid_chain;
             integer vi;
 
-            always @(posedge clock or posedge reset) begin
+            always @(posedge clock) begin
                 if (reset) begin
                     valid_chain <= {(NUM_LANES-1){1'b0}};
                 end else begin

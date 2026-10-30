@@ -1,4 +1,4 @@
-module activator #(
+module ActivationUnit #(
     parameter INPUT_WIDTH = 8, // Number of PEs in the column (i.e. number of inputs to the activation block)
     parameter BITS = 32 // Bit width of the input and output data (32 bits per PE to accommodate the accumulated sums from the accumulator column)
 )(
@@ -9,7 +9,7 @@ module activator #(
     genvar i;
     generate 
         for (i = 0; i < INPUT_WIDTH; i = i + 1) begin :relu_units
-            relu relu_inst (
+            Activator relu_inst (
                 .data_in(data_in[i*BITS +: BITS]),
                 .data_out(data_out[i*BITS +: BITS])
             );

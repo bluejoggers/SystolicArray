@@ -1,4 +1,4 @@
-module quantize #(
+module Quantizer #(
     parameter BITS = 32
 )(
     input wire clock,
@@ -12,8 +12,9 @@ module quantize #(
 );
     reg [7:0] q_reg;
 
-    wire signed [BITS+16:0] multiplied;
-    wire signed [BITS+16:0] multiplied_rounded;
+    wire signed [BITS+15:0] multiplied;
+    wire signed [BITS+15:0] multiplied_rounded;
+    wire signed [BITS+15:0] shift_full;
     wire signed [BITS-1:0] scaled;
     wire signed [BITS-1:0] biased;
     wire signed [BITS-1:0] zero_point_extended;
@@ -21,7 +22,8 @@ module quantize #(
     assign multiplied = q_data_in * inv_scale;
     assign multiplied_rounded = multiplied + 48'sd128;
 
-    assign scaled = multiplied_rounded >>> 8;
+    assign shift_full = multiplied_rounded >>> 8;
+    assign scaled = shift_full[BITS-1:0];
 
     assign zero_point_extended = {{24{zero_point[7]}}, zero_point};
     assign biased = scaled + zero_point_extended;
@@ -38,5 +40,7 @@ module quantize #(
     end 
 
     assign q_data_out = q_reg;
+
+    wire _unused = &{1'b0, shift_full[BITS+15:BITS], 1'b0};
 
 endmodule 

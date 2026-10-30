@@ -8,7 +8,7 @@ Implements the 32 KiB Unified Buffer using 8 physical OpenRAM macros:
   - Behavioral memory arrays and reset for-loops removed for physical synthesis
 */
 
-module unified_buffer #(
+module UnifiedBuffer #(
     parameter NUM_BANKS = 8,            // One bank per systolic array column
     parameter DEPTH     = 4096          // 4096 words x 8 bits per bank = 4 KiB/bank (32 KiB total)
 )(
@@ -82,5 +82,7 @@ module unified_buffer #(
 
         end
     endgenerate
+
+    wire _unused = &{1'b0, reset, 1'b0};
 
 endmodule

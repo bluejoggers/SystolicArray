@@ -1,4 +1,4 @@
-module relu #(
+module Activator #(
     parameter BITS = 32
 )(
     input wire [BITS-1:0] data_in,

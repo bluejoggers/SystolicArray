@@ -9,7 +9,7 @@ Implements the 8 KiB Accumulator block across 8 systolic columns:
   - Behavioral memory arrays and reset loops removed for physical synthesis
 */
 
-module accumulator #(
+module Accumulator #(
     parameter INPUT_WIDTH = 8,          // Number of columns in systolic array
     parameter DEPTH       = 256         // Words per column => 256 * 32b = 1 KiB/col (8 KiB total)
 )(
@@ -84,4 +84,6 @@ module accumulator #(
         end
     endgenerate
 
+    wire _unused = &{1'b0, reset, 1'b0}; // Retained for interface compatibility
+    
 endmodule

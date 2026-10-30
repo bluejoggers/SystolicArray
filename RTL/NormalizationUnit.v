@@ -2,7 +2,7 @@
     Normalizer.v instantiates the normalize module in BatchNormalizaton.v for each column of the Systolic Array.
 */
 
-module normalizer #(
+module NormalizationUnit #(
     parameter INPUT_WIDTH = 8, // Number of PEs in the column (i.e. number of inputs to the normalization block)
     parameter BITS = 32 // Bit width of the input and output data (32 bits per PE to accommodate the accumulated sums from the accumulator column)
 )(
@@ -27,7 +27,7 @@ module normalizer #(
     genvar i;
     generate 
         for (i = 0; i < INPUT_WIDTH; i = i + 1) begin :normalization_units
-            normalize normalize_inst ( 
+            Normalizer normalize_inst ( 
                 .data_in(data_in[i*BITS +: BITS]), // Slicing 32 bits of data from the bus for each column
                 .gain(gain_reg), // Using the registered gain value for normalization
                 .bias(bias_reg), // Using the registered bias value for normalization

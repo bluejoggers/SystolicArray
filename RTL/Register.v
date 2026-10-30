@@ -3,7 +3,7 @@
 //BITS = 16 for Sum-in Register
 
 
-module register #(
+module Register #(
     parameter BITS = 8
 )(
     input wire clk,

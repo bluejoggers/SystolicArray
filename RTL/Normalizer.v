@@ -20,7 +20,7 @@ data_in × gain_real = 200 × 0.5 = 100
 */
 
 
-module normalize #(
+module Normalizer #(
     parameter BITS = 32 // Bit width of the input and output data (32 bits per PE to accommodate the accumulated sums from the accumulator column)
 )(
     input wire signed [BITS-1:0] data_in, // Input data from the accumulator column (32 bits per PE)
@@ -35,4 +35,6 @@ module normalize #(
     assign multiplied_data = (data_in * gain) >>> shift; // Multiply the input data by the gain and apply the shift for scaling
     assign data_out = multiplied_data[BITS-1:0] + bias; // Add the bias to the scaled data to get the final normalized output
 
-endmodule 
+    wire _unused = &{1'b0, multiplied_data[BITS+16-1:BITS]}; // Ensure that the upper bits of multiplied_data are zero to avoid overflow
+
+endmodule

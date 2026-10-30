@@ -1,4 +1,4 @@
-module systolic_stagger_block #(
+module SystolicDataSetup #(
     parameter NUM_LANES = 8,
     parameter DATA_WIDTH = 8 // INT8 Activations from Unified Buffer
 )(
@@ -23,7 +23,7 @@ module systolic_stagger_block #(
                 // Create a shift register chain of depth 'r' for Row 'r'
                 logic [DATA_WIDTH-1:0] delay_chain [r-1:0];
                 logic [r-1:0]          valid_chain;
-                always_ff @(posedge clock or posedge reset) begin
+                always_ff @(posedge clock) begin
                     if (reset) begin
                         valid_chain <= '0;
                         for (int i = 0; i < r; i = i + 1) begin
